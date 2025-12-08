@@ -316,7 +316,7 @@ export default function HomePage() {
         </section>
 
         {/* 3PL COMPETITIVE ADVANTAGE – 3 CARDS */}
-        <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
+        <section className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
           <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">
               Turn Your 3PL Into a Modern Tech Partner
@@ -372,7 +372,7 @@ export default function HomePage() {
         {/* PRICING */}
         <section
           id="pricing"
-          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+          className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
           <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">Simple, Scalable Pricing</h2>
@@ -449,9 +449,9 @@ export default function HomePage() {
         {/* FAQ */}
         <section
           id="faq"
-          className="py-6 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">Frequently Asked Questions</h2>
           </div>
 
@@ -505,7 +505,7 @@ export default function HomePage() {
             </Link>
           </nav>
           <p className="text-xs opacity-70">
-            © {new Date().getFullYear()} OrderShifter — All rights reserved.
+            © {new Date().getFullYear()} OrderShifter - All rights reserved.
           </p>
         </footer>
       </div>
