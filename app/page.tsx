@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-base-200">
+    <main className="min-h-screen bg-base-100">
       {/* HEADER / NAVBAR */}
       <header className="border-b border-base-300 bg-base-100">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
@@ -184,8 +184,8 @@ export default function HomePage() {
               <div className="card-body">
                 <h3 className="card-title text-base">Unified Merchant Dashboard</h3>
                 <p className="text-sm opacity-80">
-                  Merchants see syncing status, tracking updates, and error logs in real time—
-                  inside your branded portal—creating unmatched transparency and trust.
+                  Merchants see syncing status, tracking updates, and error logs in real time - 
+                  inside your branded portal - creating unmatched transparency and trust.
                 </p>
               </div>
             </div>

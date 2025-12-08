@@ -1,5 +1,10 @@
 @import "tailwindcss";
-@plugin "daisyui";
+
+/* daisyUI: enable only the light theme and make it default */
+@plugin "daisyui" {
+  themes: light --default;
+}
+
 
 
 /* Smooth scrolling like ShipFast */
