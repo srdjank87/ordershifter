@@ -66,8 +66,8 @@ export default function HomePage() {
           </h1>
 
           <p className="text-lg opacity-80 max-w-2xl mx-auto">
-            OrderShifter connects Shopify to your WMS in real time - no manual CSVs, no custom
-            scripts, no developer firefighting. Your team stops babysitting data.
+            OrderShifter connects Shopify to your WMS in real time - eliminating manual CSVs, sync
+            delays, avoidable errors, and constant order firefighting across your 3PL.
           </p>
 
           <div className="flex justify-center gap-4 pt-2">
@@ -80,14 +80,15 @@ export default function HomePage() {
           </div>
 
           <p className="text-sm opacity-70 pt-1">
-            The modern way for 3PLs to support Shopify brands at scale.
+            Backed by the OrderShifter Efficiency Guarantee - save at least 15% in admin time and go
+            live in 5 days, or it&apos;s free.
           </p>
         </section>
 
         {/* PRIMARY BENEFITS */}
         <section
           id="benefits"
-          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+          className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
           <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">
@@ -102,7 +103,7 @@ export default function HomePage() {
             {/* Real-Time Order Sync */}
             <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
-                <div className="flex items-center gap-3 mb-2 py-1.5">
+                <div className="flex items-center gap-3 mb-2">
                   <div className="relative flex items-center justify-center">
                     <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
                     <span className="absolute w-4 h-4 rounded-full border border-green-500/40 animate-ping" />
@@ -110,7 +111,8 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Real-Time Order Sync</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Orders flow instantly from Shopify to your WMS - no lag, no manual steps.
+                  Orders flow instantly from Shopify to your WMS - no lag, no manual steps, no
+                  guessing.
                 </p>
               </div>
             </div>
@@ -125,7 +127,8 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Zero-Code WMS Connection</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  CSV/SFTP field mapping takes minutes - no developers needed.
+                  CSV/SFTP field mapping takes minutes - no API dependency, no custom engineering
+                  needed.
                 </p>
               </div>
             </div>
@@ -140,7 +143,8 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Full Automation</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Stop manual exports and sync issues - OrderShifter handles everything 24/7.
+                  Stop manual exports and sync issues - OrderShifter handles every sync in the
+                  background, 24/7.
                 </p>
               </div>
             </div>
@@ -170,8 +174,9 @@ export default function HomePage() {
                   <h3 className="card-title text-base">White-Label Merchant App</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Your merchants install a Shopify app that carries <strong>your 3PL&apos;s name, logo, and colors</strong>. You look like a
-                  tech-enabled fulfillment leader, not just another warehouse.
+                  Your merchants install a Shopify app that carries your 3PL&apos;s name, logo, and
+                  colors. You look like a tech-enabled fulfillment leader, not just another
+                  warehouse.
                 </p>
               </div>
             </div>
@@ -186,8 +191,8 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Frictionless Merchant Onboarding</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Shopify stores connect in under 2 minutes using your branded onboarding portal.
-                  No developer calls, PDFs, or back-and-forth emails.
+                  Shopify stores connect in under 2 minutes using your branded onboarding portal. No
+                  developer calls, PDFs, or back-and-forth ticket threads.
                 </p>
               </div>
             </div>
@@ -196,7 +201,7 @@ export default function HomePage() {
             <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+                  <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
                     <Users className="w-5 h-5" />
                   </div>
                   <h3 className="card-title text-base">Increase Merchant Retention</h3>
@@ -212,7 +217,7 @@ export default function HomePage() {
             <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
+                  <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
                     <TrendingUp className="w-5 h-5" />
                   </div>
                   <h3 className="card-title text-base">Win More Shopify Brands</h3>
@@ -228,14 +233,14 @@ export default function HomePage() {
             <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+                  <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
                     <LayoutDashboard className="w-5 h-5" />
                   </div>
                   <h3 className="card-title text-base">Unified Merchant Dashboard</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Merchants see syncing status, tracking updates, and error logs in real time - 
-                  inside your branded portal - creating unmatched transparency and trust.
+                  Merchants see sync status, tracking updates, and error logs in real time - inside
+                  your branded portal - creating unmatched transparency and trust.
                 </p>
               </div>
             </div>
@@ -251,7 +256,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-sm opacity-80">
                   Eliminating spreadsheets and manual syncing means fewer mistakes, faster
-                  fulfillment, and far fewer support tickets asking &quot;Where&apos;s my order?&quot;
+                  fulfillment, and fewer support tickets asking &quot;Where&apos;s my order?&quot;
                 </p>
               </div>
             </div>
@@ -261,7 +266,7 @@ export default function HomePage() {
         {/* HOW IT WORKS */}
         <section
           id="how-it-works"
-          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+          className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
           <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">How OrderShifter Works</h2>
@@ -278,7 +283,8 @@ export default function HomePage() {
               <div>
                 <h3 className="text-lg font-semibold">Connect Your WMS</h3>
                 <p className="text-sm opacity-80">
-                  Map CSV/SFTP fields in minutes - no API or developers.
+                  Map CSV/SFTP fields in minutes - no API or developers required. Your existing WMS
+                  stays in place.
                 </p>
               </div>
             </div>
@@ -290,7 +296,8 @@ export default function HomePage() {
               <div>
                 <h3 className="text-lg font-semibold">Enable Your Shopify Stores</h3>
                 <p className="text-sm opacity-80">
-                  Merchants connect through your branded onboarding portal.
+                  Merchants connect through your branded onboarding portal. One link, a few clicks,
+                  and they&apos;re live.
                 </p>
               </div>
             </div>
@@ -302,13 +309,14 @@ export default function HomePage() {
               <div>
                 <h3 className="text-lg font-semibold">Orders Flow Automatically</h3>
                 <p className="text-sm opacity-80">
-                  New orders appear in your WMS instantly; tracking syncs back automatically.
+                  New orders appear in your WMS instantly; tracking details sync back to Shopify
+                  automatically. No more babysitting exports.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="text-center py-4">
+          <div className="text-center">
             <Link href="/signup" className="btn btn-gradient btn-lg">
               Get Started
             </Link>
@@ -369,6 +377,45 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* GUARANTEE */}
+        <section className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
+          <div className="text-center space-y-1 py-4">
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Our Dual Efficiency Guarantee
+            </h2>
+            <p className="text-sm opacity-70 max-w-xl mx-auto">
+              Your 3PL shouldn&apos;t have to take on risk to modernize. We back every deployment
+              with a measurable, operations-focused guarantee.
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-4 text-sm opacity-90">
+            <div className="bg-base-200 rounded-xl p-4 shadow-sm">
+              <h3 className="text-base font-semibold mb-1">
+                1️⃣ Save at least 15% in operational admin time - or you don&apos;t pay.
+              </h3>
+              <p>
+                If your team doesn&apos;t measurably reduce manual order handling, CSV work, or sync
+                troubleshooting within 60 days, we waive your monthly fees. Simple as that.
+              </p>
+            </div>
+
+            <div className="bg-base-200 rounded-xl p-4 shadow-sm">
+              <h3 className="text-base font-semibold mb-1">
+                2️⃣ Go live in 5 business days - or your entire setup fee is refunded.
+              </h3>
+              <p>
+                No drawn-out integrations or endless projects. If we don&apos;t deliver a working
+                Shopify → WMS connection within 5 business days, we refund 100% of your setup fee.
+              </p>
+            </div>
+
+            <p className="text-xs opacity-70 text-center">
+              Zero risk. Real efficiency. Backed by the strongest guarantee in 3PL automation.
+            </p>
+          </div>
+        </section>
+
         {/* PRICING */}
         <section
           id="pricing"
@@ -403,13 +450,13 @@ export default function HomePage() {
                     • From <strong>$49/mo</strong> for small merchants
                   </p>
                   <p className="text-sm opacity-80">
-                    • Up to <strong>$299/mo</strong> for large groups
+                    • Up to <strong>$299/mo</strong> for larger brands or multi-store setups
                   </p>
                 </div>
 
                 <p className="text-xs opacity-60 mt-3">
-                  Includes branded Shopify app, onboarding portal, WMS connector, and automation
-                  engine.
+                  Includes branded Shopify app, onboarding portal, WMS connector, automation engine,
+                  and the OrderShifter Dual Efficiency Guarantee.
                 </p>
 
                 <Link href="/signup" className="btn btn-gradient btn-sm mt-4">
@@ -435,7 +482,8 @@ export default function HomePage() {
                 </div>
 
                 <p className="text-xs opacity-60 mt-3">
-                  After 12 months, continue at standard monthly rates.
+                  After 12 months, continue at standard monthly rates and remains fully covered by
+                  the OrderShifter Dual Efficiency Guarantee.
                 </p>
 
                 <Link href="/contact" className="btn btn-outline btn-sm mt-4">
@@ -449,7 +497,7 @@ export default function HomePage() {
         {/* FAQ */}
         <section
           id="faq"
-          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+          className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
           <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">Frequently Asked Questions</h2>
@@ -462,7 +510,10 @@ export default function HomePage() {
                 Does OrderShifter require a custom API?
               </div>
               <div className="collapse-content text-sm opacity-80">
-                <p>No — CSV/SFTP is fully supported. API is optional.</p>
+                <p>
+                  No - CSV/SFTP is fully supported. If you have an API, we can leverage it, but it&apos;s
+                  not required for a successful rollout.
+                </p>
               </div>
             </div>
 
@@ -473,8 +524,9 @@ export default function HomePage() {
               </div>
               <div className="collapse-content text-sm opacity-80">
                 <p>
-                  Yes, through your branded portal with smart routing rules and clear status
-                  visibility.
+                  Yes. Your merchants connect through your branded portal with guided steps, smart
+                  defaults, and clear sync status so your team doesn&apos;t have to handhold every
+                  setup.
                 </p>
               </div>
             </div>
@@ -485,7 +537,10 @@ export default function HomePage() {
                 How fast does it sync?
               </div>
               <div className="collapse-content text-sm opacity-80">
-                <p>Most updates appear within seconds thanks to background job queues.</p>
+                <p>
+                  Most order and tracking updates appear within seconds, powered by background job
+                  queues and retry logic to handle spikes or temporary failures.
+                </p>
               </div>
             </div>
           </div>
