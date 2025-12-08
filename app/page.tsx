@@ -66,7 +66,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-lg opacity-80 max-w-2xl mx-auto">
-            OrderShifter connects Shopify to your WMS in real time—no manual CSVs, no custom
+            OrderShifter connects Shopify to your WMS in real time - no manual CSVs, no custom
             scripts, no developer firefighting. Your team stops babysitting data.
           </p>
 
@@ -87,9 +87,9 @@ export default function HomePage() {
         {/* PRIMARY BENEFITS */}
         <section
           id="benefits"
-          className="py-6 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">
               Why Top 3PLs Choose OrderShifter
             </h2>
@@ -102,7 +102,7 @@ export default function HomePage() {
             {/* Real-Time Order Sync */}
             <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-2 py-1.5">
                   <div className="relative flex items-center justify-center">
                     <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
                     <span className="absolute w-4 h-4 rounded-full border border-green-500/40 animate-ping" />
@@ -125,7 +125,7 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Zero-Code WMS Connection</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  CSV/SFTP field mapping takes minutes—no developers needed.
+                  CSV/SFTP field mapping takes minutes - no developers needed.
                 </p>
               </div>
             </div>
@@ -140,7 +140,7 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Full Automation</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Stop manual exports and sync issues—OrderShifter handles everything 24/7.
+                  Stop manual exports and sync issues - OrderShifter handles everything 24/7.
                 </p>
               </div>
             </div>
@@ -148,13 +148,13 @@ export default function HomePage() {
         </section>
 
         {/* WHITE-LABEL & RETENTION – 6 CARDS */}
-        <section className="py-6 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
-          <div className="text-center space-y-1">
+        <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
+          <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">
               Strengthen Your 3PL&apos;s Brand
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              OrderShifter runs behind the scenes—your merchants see your logo, your colors, your
+              OrderShifter runs behind the scenes - your merchants see your logo, your colors, your
               portal.
             </p>
           </div>
@@ -234,8 +234,8 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Unified Merchant Dashboard</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Merchants see syncing status, tracking updates, and error logs in real time—
-                  inside your branded portal—creating unmatched transparency and trust.
+                  Merchants see syncing status, tracking updates, and error logs in real time - 
+                  inside your branded portal - creating unmatched transparency and trust.
                 </p>
               </div>
             </div>
@@ -263,7 +263,7 @@ export default function HomePage() {
           id="how-it-works"
           className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">How OrderShifter Works</h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
               Three steps from manual spreadsheets to fully automated sync.
@@ -278,7 +278,7 @@ export default function HomePage() {
               <div>
                 <h3 className="text-lg font-semibold">Connect Your WMS</h3>
                 <p className="text-sm opacity-80">
-                  Map CSV/SFTP fields in minutes—no API or developers.
+                  Map CSV/SFTP fields in minutes - no API or developers.
                 </p>
               </div>
             </div>
@@ -308,7 +308,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="text-center">
+          <div className="text-center py-4">
             <Link href="/signup" className="btn btn-gradient btn-lg">
               Get Started
             </Link>
@@ -316,8 +316,8 @@ export default function HomePage() {
         </section>
 
         {/* 3PL COMPETITIVE ADVANTAGE – 3 CARDS */}
-        <section className="py-6 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
-          <div className="text-center space-y-1">
+        <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
+          <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">
               Turn Your 3PL Into a Modern Tech Partner
             </h2>
@@ -362,7 +362,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg font-semibold">Increase Lifetime Value</h3>
               <p className="text-sm opacity-80">
-                Better onboarding, higher trust, fewer errors—OrderShifter directly increases
+                Better onboarding, higher trust, fewer errors - OrderShifter directly increases
                 merchant retention and revenue without increasing overhead.
               </p>
             </div>
@@ -372,9 +372,9 @@ export default function HomePage() {
         {/* PRICING */}
         <section
           id="pricing"
-          className="py-6 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">Simple, Scalable Pricing</h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
               Built for 3PLs who want a branded Shopify integration fast.
