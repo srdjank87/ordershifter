@@ -1,6 +1,19 @@
 // app/page.tsx
 import Link from "next/link";
 
+import {
+  RefreshCw,
+  Cable,
+  Zap,
+  Store,
+  Handshake,
+  Users,
+  BadgeCheck,
+  LayoutDashboard,
+  TrendingUp,
+} from "lucide-react";
+
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-base-100">
@@ -79,127 +92,169 @@ export default function HomePage() {
 
         {/* PRIMARY VALUE PROPS */}
         <section
-          id="benefits"
-          className="py-10 space-y-10 bg-base-100 rounded-xl shadow-sm border border-base-300"
-        >
-          <div className="text-center space-y-2 pt-8">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              Why Top 3PLs Choose OrderShifter
-            </h2>
-            <p className="text-sm opacity-70 max-w-xl mx-auto">
-              Turn your warehouse into a tech-enabled fulfillment partner without building your own
-              software.
-            </p>
+  id="benefits"
+  className="py-10 space-y-10 bg-base-100 rounded-xl shadow-sm border border-base-300"
+>
+  <div className="text-center space-y-2 pt-8">
+    <h2 className="text-2xl md:text-3xl font-bold">
+      Why Top 3PLs Choose OrderShifter
+    </h2>
+    <p className="text-sm opacity-70 max-w-xl mx-auto">
+      Turn your warehouse into a tech-enabled fulfillment partner without building your own
+      software.
+    </p>
+  </div>
+
+  <div className="grid md:grid-cols-3 gap-8 px-6 pb-8 animate-appearFromRight">
+    {/* Real-Time Order Sync */}
+    <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+      <div className="card-body">
+        <div className="flex items-center gap-3 mb-2">
+          {/* Shopify Live–style pulsing indicator */}
+          <div className="relative flex items-center justify-center">
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+            <span className="absolute w-4 h-4 rounded-full border border-green-500/40 animate-ping" />
           </div>
+          <h3 className="card-title text-base">Real-Time Order Sync</h3>
+        </div>
+        <p className="text-sm opacity-80">
+          Shopify orders flow into your WMS instantly. Fulfillment data, tracking numbers,
+          inventory updates, and cancellations sync back automatically.
+        </p>
+      </div>
+    </div>
 
-          <div className="grid md:grid-cols-3 gap-8 px-6 pb-8">
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">Real-Time Order Sync</h3>
-                <p className="text-sm opacity-80">
-                  Shopify orders flow into your WMS instantly. Fulfillment data, tracking numbers,
-                  inventory updates, and cancellations sync back automatically.
-                </p>
-              </div>
-            </div>
-
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">Zero-Code WMS Connection</h3>
-                <p className="text-sm opacity-80">
-                  Connect any WMS using CSV or SFTP. Field mapping takes minutes and requires{" "}
-                  <strong>no developers or API work</strong>.
-                </p>
-              </div>
-            </div>
-
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">Full Automation</h3>
-                <p className="text-sm opacity-80">
-                  OrderShifter eliminates manual exports, human data entry, and fulfillment delays.
-                  It’s your new 24/7 order processing engine.
-                </p>
-              </div>
-            </div>
+    {/* Zero-Code WMS Connection */}
+    <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+      <div className="card-body">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+            <Cable className="w-5 h-5" />
           </div>
-        </section>
+          <h3 className="card-title text-base">Zero-Code WMS Connection</h3>
+        </div>
+        <p className="text-sm opacity-80">
+          Connect any WMS using CSV or SFTP. Field mapping takes minutes and requires{" "}
+          <strong>no developers or API work</strong>.
+        </p>
+      </div>
+    </div>
+
+    {/* Full Automation */}
+    <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+      <div className="card-body">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+            <Zap className="w-5 h-5" />
+          </div>
+          <h3 className="card-title text-base">Full Automation</h3>
+        </div>
+        <p className="text-sm opacity-80">
+          OrderShifter eliminates manual exports, human data entry, and fulfillment delays.
+          It’s your new 24/7 order processing engine.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
 
         {/* WHITE-LABEL & RETENTION BENEFITS */}
         <section className="py-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-10">
-          <div className="text-center space-y-2 pt-8">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              Built to Strengthen Your 3PL&apos;s Brand
-            </h2>
-            <p className="text-sm opacity-70 max-w-xl mx-auto">
-              OrderShifter runs behind the scenes - your merchants see your logo, your colors, and
-              your portal.
-            </p>
-          </div>
+          <div className="grid md:grid-cols-3 gap-8 px-6 pb-8 animate-appearFromRight">
+  <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+    <div className="card-body">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+          <Store className="w-5 h-5" />
+        </div>
+        <h3 className="card-title text-base">White-Label Merchant App</h3>
+      </div>
+      <p className="text-sm opacity-80">
+        Your merchants install a Shopify app that carries{" "}
+        <strong>your 3PL’s name, logo, and colors</strong>. You look like a
+        tech-enabled fulfillment leader, not just another warehouse.
+      </p>
+    </div>
+  </div>
 
-          <div className="grid md:grid-cols-3 gap-8 px-6 pb-8">
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">White-Label Merchant App</h3>
-                <p className="text-sm opacity-80">
-                  Your merchants install a Shopify app that carries{" "}
-                  <strong>your 3PL’s name, logo, and colors</strong>. You look like a
-                  tech-enabled fulfillment leader, not just another warehouse.
-                </p>
-              </div>
-            </div>
+  <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+    <div className="card-body">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+          <Handshake className="w-5 h-5" />
+        </div>
+        <h3 className="card-title text-base">Frictionless Merchant Onboarding</h3>
+      </div>
+      <p className="text-sm opacity-80">
+        Shopify stores connect in under 2 minutes using your branded onboarding portal.
+        No developer calls, PDFs, or back-and-forth emails.
+      </p>
+    </div>
+  </div>
 
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">Frictionless Merchant Onboarding</h3>
-                <p className="text-sm opacity-80">
-                  Shopify stores connect in under 2 minutes using your branded onboarding portal.
-                  No developer calls, PDFs, or back-and-forth emails.
-                </p>
-              </div>
-            </div>
+  <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+    <div className="card-body">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
+          <Users className="w-5 h-5" />
+        </div>
+        <h3 className="card-title text-base">Increase Merchant Retention</h3>
+      </div>
+      <p className="text-sm opacity-80">
+        When merchants rely on your branded sync app for their daily order flow,
+        switching 3PLs becomes significantly harder. Your integration becomes a
+        competitive moat.
+      </p>
+    </div>
+  </div>
 
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">Increase Merchant Retention</h3>
-                <p className="text-sm opacity-80">
-                  When merchants rely on your branded sync app for their daily order flow,
-                  switching 3PLs becomes significantly harder. Your integration becomes a
-                  competitive moat.
-                </p>
-              </div>
-            </div>
+  <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+    <div className="card-body">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+          <TrendingUp className="w-5 h-5" />
+        </div>
+        <h3 className="card-title text-base">Win More Shopify Brands</h3>
+      </div>
+      <p className="text-sm opacity-80">
+        Offer a premium, tech-forward experience that most 3PLs can’t. Your white-label
+        integration makes you the obvious choice for serious Shopify merchants.
+      </p>
+    </div>
+  </div>
 
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">Win More Shopify Brands</h3>
-                <p className="text-sm opacity-80">
-                  Offer a premium, tech-forward experience that most 3PLs can’t. Your white-label
-                  integration makes you the obvious choice for serious Shopify merchants.
-                </p>
-              </div>
-            </div>
+  <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+    <div className="card-body">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+          <LayoutDashboard className="w-5 h-5" />
+        </div>
+        <h3 className="card-title text-base">Unified Merchant Dashboard</h3>
+      </div>
+      <p className="text-sm opacity-80">
+        Merchants see syncing status, tracking updates, and error logs in real time—
+        inside your branded portal—creating unmatched transparency and trust.
+      </p>
+    </div>
+  </div>
 
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">Unified Merchant Dashboard</h3>
-                <p className="text-sm opacity-80">
-                  Merchants see syncing status, tracking updates, and error logs in real time - 
-                  inside your branded portal - creating unmatched transparency and trust.
-                </p>
-              </div>
-            </div>
+  <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+    <div className="card-body">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
+          <Zap className="w-5 h-5" />
+        </div>
+        <h3 className="card-title text-base">Operational Efficiency Boost</h3>
+      </div>
+      <p className="text-sm opacity-80">
+        Eliminating spreadsheets and manual syncing means fewer mistakes, faster
+        fulfillment, and far fewer support tickets asking, “Where&apos;s my order?”
+      </p>
+    </div>
+  </div>
+</div>
 
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-base">Operational Efficiency Boost</h3>
-                <p className="text-sm opacity-80">
-                  Eliminating spreadsheets and manual syncing means fewer mistakes, faster
-                  fulfillment, and far fewer support tickets asking, “Where&apos;s my order?”
-                </p>
-              </div>
-            </div>
-          </div>
         </section>
 
         {/* HOW IT WORKS */}
@@ -265,41 +320,45 @@ export default function HomePage() {
 
         {/* 3PL COMPETITIVE ADVANTAGE */}
         <section className="py-16 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-10">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              Turn Your 3PL Into a Modern Tech Partner
-            </h2>
-            <p className="text-sm opacity-70 max-w-xl mx-auto">
-              Most 3PLs still rely on spreadsheets and outdated systems. OrderShifter gives you the
-              technology edge merchants now expect from their fulfillment partners.
-            </p>
-          </div>
+          <div className="text-center space-y-3">
+  <div className="flex justify-center">
+    <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+      <Store className="w-5 h-5" />
+    </div>
+  </div>
+  <h3 className="text-lg font-semibold">Attract Shopify Brands</h3>
+  <p className="text-sm opacity-80">
+    Brands actively prefer 3PLs with native Shopify integrations. Your white-labeled app
+    makes you the obvious choice.
+  </p>
+</div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto px-6">
-            <div className="text-center space-y-3">
-              <h3 className="text-lg font-semibold">Attract Shopify Brands</h3>
-              <p className="text-sm opacity-80">
-                Brands actively prefer 3PLs with native Shopify integrations. Your white-labeled app
-                makes you the obvious choice.
-              </p>
-            </div>
+<div className="text-center space-y-3">
+  <div className="flex justify-center">
+    <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+      <Users className="w-5 h-5" />
+    </div>
+  </div>
+  <h3 className="text-lg font-semibold">Reduce Merchant Churn</h3>
+  <p className="text-sm opacity-80">
+    When merchants depend on your integration for daily order flow, switching to another
+    3PL becomes painful and risky.
+  </p>
+</div>
 
-            <div className="text-center space-y-3">
-              <h3 className="text-lg font-semibold">Reduce Merchant Churn</h3>
-              <p className="text-sm opacity-80">
-                When merchants depend on your integration for daily order flow, switching to another
-                3PL becomes painful and risky.
-              </p>
-            </div>
+<div className="text-center space-y-3">
+  <div className="flex justify-center">
+    <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
+      <TrendingUp className="w-5 h-5" />
+    </div>
+  </div>
+  <h3 className="text-lg font-semibold">Increase Lifetime Value</h3>
+  <p className="text-sm opacity-80">
+    Better onboarding, higher trust, fewer errors—OrderShifter directly increases
+    merchant retention and revenue without increasing overhead.
+  </p>
+</div>
 
-            <div className="text-center space-y-3">
-              <h3 className="text-lg font-semibold">Increase Lifetime Value</h3>
-              <p className="text-sm opacity-80">
-                Better onboarding, higher trust, fewer errors—OrderShifter directly increases
-                merchant retention and revenue without increasing overhead.
-              </p>
-            </div>
-          </div>
         </section>
 
         {/* PRICING */}
