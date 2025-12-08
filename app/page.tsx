@@ -55,7 +55,7 @@ export default function HomePage() {
       <div className="max-w-6xl mx-auto px-4 pb-24 space-y-24">
         {/* HERO */}
                 {/* HERO */}
-        <section className="text-center pt-16 pb-12 animate-appearFromRight space-y-6">
+        <section className="text-center pt-16 pb-8 animate-appearFromRight space-y-6">
           <p className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-base-100 border border-base-300">
             <span className="w-2 h-2 rounded-full bg-success animate-wiggle" />
             Built for 3PLs tired of manual Shopify syncing
@@ -93,7 +93,7 @@ export default function HomePage() {
         {/* PRIMARY VALUE PROPS */}
         <section
   id="benefits"
-  className="py-10 space-y-10 bg-base-100 rounded-xl shadow-sm border border-base-300"
+  className="py-10 space-y-8 bg-base-100 rounded-xl shadow-sm border border-base-300"
 >
   <div className="text-center space-y-2 pt-8">
     <h2 className="text-2xl md:text-3xl font-bold">
@@ -105,7 +105,7 @@ export default function HomePage() {
     </p>
   </div>
 
-  <div className="grid md:grid-cols-3 gap-8 px-6 pb-8 animate-appearFromRight">
+  <div className="grid md:grid-cols-3 gap-6 px-6 pb-6 animate-appearFromRight">
     {/* Real-Time Order Sync */}
     <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
       <div className="card-body">
@@ -160,9 +160,18 @@ export default function HomePage() {
 
 
         {/* WHITE-LABEL & RETENTION BENEFITS */}
-        <section className="py-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-10">
-          <div className="grid md:grid-cols-3 gap-8 px-6 pb-8 animate-appearFromRight">
+        <section className="py-8 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-center">
+      Built to Strengthen Your 3PL’s Brand
+    </h2>
+    <p className="text-sm opacity-70 max-w-xl mx-auto text-center">
+      Turn your warehouse into a tech-enabled fulfillment partner without building your own
+      software.
+    </p>
+          
+          <div className="grid md:grid-cols-3 gap-6 px-6 pb-6 animate-appearFromRight">
   <div className="card bg-base-200 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+    
     <div className="card-body">
       <div className="flex items-center gap-3 mb-2">
         <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
@@ -319,7 +328,12 @@ export default function HomePage() {
         </section>
 
         {/* 3PL COMPETITIVE ADVANTAGE */}
-        <section className="py-16 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-10">
+        <section className="py-12 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-8">
+          <h2 className="text-3xl font-bold text-center">Turn Your 3PL Into a Modern Tech Partner</h2>
+  <p className="text-center max-w-2xl mx-auto opacity-70 mt-4">
+    Most 3PLs still rely on spreadsheets, manual imports, and outdated systems. 
+    OrderShifter gives you the technology edge that merchants now expect.
+  </p>
           <div className="text-center space-y-3">
   <div className="flex justify-center">
     <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
@@ -364,7 +378,7 @@ export default function HomePage() {
         {/* PRICING */}
        <section
   id="pricing"
-  className="py-16 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-10"
+  className="py-12 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-8"
 >
   <div className="text-center space-y-2">
     <h2 className="text-2xl md:text-3xl font-bold">Simple, Scalable Pricing</h2>
@@ -374,7 +388,7 @@ export default function HomePage() {
     </p>
   </div>
 
-  <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto px-6">
+  <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto px-6">
     {/* One-Time Integration + Monthly Plan */}
     <div className="card bg-base-200 shadow">
       <div className="card-body text-center">
