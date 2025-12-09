@@ -346,9 +346,14 @@ export default function HomePage() {
             {/* Smart Delay Window */}
             <div className="card bg-base-200 shadow-sm">
               <div className="card-body">
-                <h3 className="text-base font-semibold mb-1">
-                  Smart Order Delay Window
-                </h3>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-base font-semibold">
+                    Smart Order Delay Window
+                  </h3>
+                </div>
                 <p className="text-sm opacity-80">
                   Configure a delay before orders leave Shopify, so cancellations,
                   edits, fraud reviews, and address changes are processed before
@@ -360,9 +365,14 @@ export default function HomePage() {
             {/* Automated Exception Handling */}
             <div className="card bg-base-200 shadow-sm">
               <div className="card-body">
-                <h3 className="text-base font-semibold mb-1">
-                  Automated Exception Handling
-                </h3>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-base font-semibold">
+                    Automated Exception Handling
+                  </h3>
+                </div>
                 <p className="text-sm opacity-80">
                   Detect invalid addresses, missing SKUs, hazmat flags,
                   oversized items, and routing conflicts. Auto-retry when possible
@@ -374,9 +384,14 @@ export default function HomePage() {
             {/* Address Validation */}
             <div className="card bg-base-200 shadow-sm">
               <div className="card-body">
-                <h3 className="text-base font-semibold mb-1">
-                  Address Validation &amp; Auto-Correction
-                </h3>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+                    <Map className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-base font-semibold">
+                    Address Validation &amp; Auto-Correction
+                  </h3>
+                </div>
                 <p className="text-sm opacity-80">
                   Validate addresses using postal data and fix common errors
                   automatically. Reduce carrier exceptions and failed deliveries.
@@ -387,9 +402,14 @@ export default function HomePage() {
             {/* Premium Modules */}
             <div className="card bg-base-200 shadow-sm">
               <div className="card-body">
-                <h3 className="text-base font-semibold mb-1">
-                  Premium Modules (Optional Upgrades)
-                </h3>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+                    <Activity className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-base font-semibold">
+                    Premium Modules (Optional Upgrades)
+                  </h3>
+                </div>
                 <p className="text-sm opacity-80">
                   Add deeper automation as needed:
                 </p>
@@ -610,6 +630,7 @@ export default function HomePage() {
                   <p>✓ WMS mapping &amp; routing defaults</p>
                   <p>✓ Smart delay &amp; exception engine</p>
                   <p>✓ 12 months of Essential tier included</p>
+                  <p>✓ White-glove VIP support service</p>
                 </div>
 
                 <p className="text-xs opacity-60 mt-3">
