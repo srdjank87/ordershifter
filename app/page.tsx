@@ -8,6 +8,10 @@ import {
   Users,
   LayoutDashboard,
   TrendingUp,
+  Clock,
+  AlertTriangle,
+  Map,
+  Activity,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -25,6 +29,9 @@ export default function HomePage() {
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <Link href="#benefits" className="link link-hover">
               Benefits
+            </Link>
+            <Link href="#automation" className="link link-hover">
+              Automation
             </Link>
             <Link href="#how-it-works" className="link link-hover">
               How it works
@@ -58,16 +65,16 @@ export default function HomePage() {
           </p>
 
           <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-            Automate Every Order.
+            The Fastest Way to Give Your 3PL
             <br />
-            Sync Every Update.
-            <br />
-            Impress Every Merchant.
+            a Branded, Error-Proof Shopify Integration.
           </h1>
 
           <p className="text-lg opacity-80 max-w-2xl mx-auto">
-            OrderShifter connects Shopify to your WMS in real time - eliminating manual CSVs, sync
-            delays, avoidable errors, and constant order firefighting across your 3PL.
+            Launch a fully branded Shopify → WMS connection in 5 business days.
+            Orders route intelligently, wait in a smart delay window, get
+            validated for errors, and sync back with tracking under your 3PL&apos;s
+            brand.
           </p>
 
           <div className="flex justify-center gap-4 pt-2">
@@ -80,8 +87,9 @@ export default function HomePage() {
           </div>
 
           <p className="text-sm opacity-70 pt-1">
-            Backed by the OrderShifter Efficiency Guarantee - save at least 15% in admin time and go
-            live in 5 days, or it&apos;s free.
+            Backed by the OrderShifter Dual Efficiency Guarantee – go live in 5
+            business days and see at least a 15% reduction in admin time, or we
+            make it right.
           </p>
         </section>
 
@@ -92,32 +100,50 @@ export default function HomePage() {
         >
           <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">
-              Why Top 3PLs Choose OrderShifter
+              Why Modern 3PLs Choose OrderShifter
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              Turn your warehouse into a tech-enabled fulfillment partner.
+              Replace spreadsheets and fragile integrations with a branded,
+              automation-first layer between Shopify and your WMS.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-4 pb-4 px-2 sm:px-3 animate-appearFromRight">
-            {/* Real-Time Order Sync */}
+            {/* Smart Order Delay Engine */}
             <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="relative flex items-center justify-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="absolute w-4 h-4 rounded-full border border-green-500/40 animate-ping" />
+                  <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+                    <Clock className="w-5 h-5" />
                   </div>
-                  <h3 className="card-title text-base">Real-Time Order Sync</h3>
+                  <h3 className="card-title text-base">Smart Order Delay</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Orders flow instantly from Shopify to your WMS - no lag, no manual steps, no
-                  guessing.
+                  Add a configurable delay window (1–12 hours) before orders are
+                  sent to your WMS. Catch cancellations, edits, fraud holds, and
+                  address changes before they become expensive mistakes.
                 </p>
               </div>
             </div>
 
-            {/* Zero-Code WMS */}
+            {/* Multi-3PL Routing */}
+            <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+              <div className="card-body">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+                    <Map className="w-5 h-5" />
+                  </div>
+                  <h3 className="card-title text-base">Multi-3PL Routing</h3>
+                </div>
+                <p className="text-sm opacity-80">
+                  Route orders by country, region, postal prefix, SKU, tags, or
+                  shipping method. Support merchants that split volume across
+                  multiple 3PLs without chaos.
+                </p>
+              </div>
+            </div>
+
+            {/* Zero-Code WMS Connection */}
             <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-2">
@@ -127,24 +153,59 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Zero-Code WMS Connection</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  CSV/SFTP field mapping takes minutes - no API dependency, no custom engineering
-                  needed.
+                  CSV/SFTP field mapping takes minutes. Your existing WMS stays
+                  exactly as-is. APIs are optional, not required.
                 </p>
               </div>
             </div>
 
-            {/* Full Automation */}
+            {/* Exception Detection & Auto-Fix */}
+            <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+              <div className="card-body">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <h3 className="card-title text-base">Exception Engine</h3>
+                </div>
+                <p className="text-sm opacity-80">
+                  Automatically flag missing SKUs, invalid addresses, hazmat
+                  constraints, and routing conflicts. Retry failed syncs and
+                  escalate only what truly needs attention.
+                </p>
+              </div>
+            </div>
+
+            {/* Branded Shopify App */}
             <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
-                    <Zap className="w-5 h-5" />
+                    <Store className="w-5 h-5" />
                   </div>
-                  <h3 className="card-title text-base">Full Automation</h3>
+                  <h3 className="card-title text-base">Branded Shopify App</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Stop manual exports and sync issues - OrderShifter handles every sync in the
-                  background, 24/7.
+                  Merchants install your app – your name, logo, and colors.
+                  OrderShifter runs behind the scenes as your private tech
+                  engine.
+                </p>
+              </div>
+            </div>
+
+            {/* Tracking & Fulfillment Sync */}
+            <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+              <div className="card-body">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+                    <Activity className="w-5 h-5" />
+                  </div>
+                  <h3 className="card-title text-base">Clean Tracking Sync</h3>
+                </div>
+                <p className="text-sm opacity-80">
+                  Fulfillment and tracking data flow back to Shopify
+                  automatically, reducing &quot;Where&apos;s my order?&quot; tickets and
+                  keeping merchants confident in your operation.
                 </p>
               </div>
             </div>
@@ -158,8 +219,8 @@ export default function HomePage() {
               Strengthen Your 3PL&apos;s Brand
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              OrderShifter runs behind the scenes - your merchants see your logo, your colors, your
-              portal.
+              OrderShifter runs quietly in the background – your merchants see
+              your logo, your colors, your portal.
             </p>
           </div>
 
@@ -174,9 +235,9 @@ export default function HomePage() {
                   <h3 className="card-title text-base">White-Label Merchant App</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Your merchants install a Shopify app that carries your 3PL&apos;s name, logo, and
-                  colors. You look like a tech-enabled fulfillment leader, not just another
-                  warehouse.
+                  Your merchants install a Shopify app that carries your 3PL&apos;s
+                  identity. You look like a modern tech-enabled partner, not just
+                  a warehouse.
                 </p>
               </div>
             </div>
@@ -188,11 +249,12 @@ export default function HomePage() {
                   <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
                     <Handshake className="w-5 h-5" />
                   </div>
-                  <h3 className="card-title text-base">Frictionless Merchant Onboarding</h3>
+                  <h3 className="card-title text-base">Frictionless Onboarding</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Shopify stores connect in under 2 minutes using your branded onboarding portal. No
-                  developer calls, PDFs, or back-and-forth ticket threads.
+                  Shopify merchants connect in under two minutes through your
+                  branded portal. No PDF instructions, no back-and-forth support
+                  chains.
                 </p>
               </div>
             </div>
@@ -207,8 +269,8 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Increase Merchant Retention</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  When merchants rely on your branded sync app for their daily order flow,
-                  switching 3PLs becomes significantly harder. Your integration becomes a moat.
+                  When merchants rely on your integration for daily order flow,
+                  switching 3PLs becomes risky. Your technology becomes a moat.
                 </p>
               </div>
             </div>
@@ -223,8 +285,9 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Win More Shopify Brands</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Offer a premium, tech-forward experience that most 3PLs can&apos;t. Your
-                  white-label integration makes you the obvious choice for serious brands.
+                  Brands actively prefer 3PLs with native-looking Shopify
+                  integrations. Your white-labeled app makes you the obvious
+                  choice.
                 </p>
               </div>
             </div>
@@ -236,11 +299,12 @@ export default function HomePage() {
                   <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
                     <LayoutDashboard className="w-5 h-5" />
                   </div>
-                  <h3 className="card-title text-base">Unified Merchant Dashboard</h3>
+                  <h3 className="card-title text-base">Unified Merchant View</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Merchants see sync status, tracking updates, and error logs in real time - inside
-                  your branded portal - creating unmatched transparency and trust.
+                  Merchants see routing rules, sync status, and tracking
+                  timelines in real time inside your branded portal, building
+                  transparency and trust.
                 </p>
               </div>
             </div>
@@ -255,9 +319,86 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Operational Efficiency Boost</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Eliminating spreadsheets and manual syncing means fewer mistakes, faster
-                  fulfillment, and fewer support tickets asking &quot;Where&apos;s my order?&quot;
+                  Eliminating spreadsheets and manual syncing frees your team to
+                  focus on exceptions and growth, not repetitive admin work.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ADVANCED AUTOMATION */}
+        <section
+          id="automation"
+          className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+        >
+          <div className="text-center space-y-1 py-4">
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Advanced Automation for Modern 3PLs
+            </h2>
+            <p className="text-sm opacity-70 max-w-xl mx-auto">
+              Start with the essentials, then layer on premium automation
+              modules as your operation grows.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto px-2 sm:px-3">
+            {/* Smart Delay Window */}
+            <div className="card bg-base-200 shadow-sm">
+              <div className="card-body">
+                <h3 className="text-base font-semibold mb-1">
+                  Smart Order Delay Window
+                </h3>
+                <p className="text-sm opacity-80">
+                  Configure a delay before orders leave Shopify, so cancellations,
+                  edits, fraud reviews, and address changes are processed before
+                  orders hit your WMS. Reduce costly rework and mistaken picks.
+                </p>
+              </div>
+            </div>
+
+            {/* Automated Exception Handling */}
+            <div className="card bg-base-200 shadow-sm">
+              <div className="card-body">
+                <h3 className="text-base font-semibold mb-1">
+                  Automated Exception Handling
+                </h3>
+                <p className="text-sm opacity-80">
+                  Detect invalid addresses, missing SKUs, hazmat flags,
+                  oversized items, and routing conflicts. Auto-retry when possible
+                  and surface only what needs human attention.
+                </p>
+              </div>
+            </div>
+
+            {/* Address Validation */}
+            <div className="card bg-base-200 shadow-sm">
+              <div className="card-body">
+                <h3 className="text-base font-semibold mb-1">
+                  Address Validation &amp; Auto-Correction
+                </h3>
+                <p className="text-sm opacity-80">
+                  Validate addresses using postal data and fix common errors
+                  automatically. Reduce carrier exceptions and failed deliveries.
+                </p>
+              </div>
+            </div>
+
+            {/* Premium Modules */}
+            <div className="card bg-base-200 shadow-sm">
+              <div className="card-body">
+                <h3 className="text-base font-semibold mb-1">
+                  Premium Modules (Optional Upgrades)
+                </h3>
+                <p className="text-sm opacity-80">
+                  Add deeper automation as needed:
+                </p>
+                <ul className="list-disc list-inside text-sm opacity-80 space-y-1 mt-1">
+                  <li>Inventory Sync Lite</li>
+                  <li>Return Logistics (RMA workflows)</li>
+                  <li>Carrier Intelligence &amp; Delivery Predictions</li>
+                  <li>Capacity &amp; Volume Forecasting for 3PL ops teams</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -269,9 +410,12 @@ export default function HomePage() {
           className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
           <div className="text-center space-y-1 py-4">
-            <h2 className="text-2xl md:text-3xl font-bold">How OrderShifter Works</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">
+              How OrderShifter Works
+            </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              Three steps from manual spreadsheets to fully automated sync.
+              Three steps from manual spreadsheets to a branded, automated
+              Shopify → WMS connection.
             </p>
           </div>
 
@@ -281,10 +425,10 @@ export default function HomePage() {
                 1
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Connect Your WMS</h3>
+                <h3 className="text-lg font-semibold">Connect Your 3PL &amp; WMS</h3>
                 <p className="text-sm opacity-80">
-                  Map CSV/SFTP fields in minutes - no API or developers required. Your existing WMS
-                  stays in place.
+                  We configure your tenant, branding, WMS mapping, and routing
+                  defaults. CSV/SFTP works out of the box; APIs are optional.
                 </p>
               </div>
             </div>
@@ -294,10 +438,13 @@ export default function HomePage() {
                 2
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Enable Your Shopify Stores</h3>
+                <h3 className="text-lg font-semibold">
+                  Invite Your Shopify Merchants
+                </h3>
                 <p className="text-sm opacity-80">
-                  Merchants connect through your branded onboarding portal. One link, a few clicks,
-                  and they&apos;re live.
+                  Merchants receive your invite link, install your branded app,
+                  and choose which regions and SKUs you handle. Most go live in
+                  under two minutes.
                 </p>
               </div>
             </div>
@@ -307,10 +454,13 @@ export default function HomePage() {
                 3
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Orders Flow Automatically</h3>
+                <h3 className="text-lg font-semibold">
+                  Orders Flow Automatically (and Safely)
+                </h3>
                 <p className="text-sm opacity-80">
-                  New orders appear in your WMS instantly; tracking details sync back to Shopify
-                  automatically. No more babysitting exports.
+                  Orders are routed using your rules, held in a smart delay
+                  window, validated for errors, sent to your WMS, and synced back
+                  to Shopify with tracking – no babysitting required.
                 </p>
               </div>
             </div>
@@ -330,8 +480,9 @@ export default function HomePage() {
               Turn Your 3PL Into a Modern Tech Partner
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              Most 3PLs still rely on spreadsheets and outdated systems. OrderShifter gives you the
-              technology edge merchants now expect from their fulfillment partners.
+              Most 3PLs still rely on spreadsheets and fragile integrations.
+              OrderShifter gives you a technology edge merchants notice right
+              away.
             </p>
           </div>
 
@@ -344,8 +495,9 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg font-semibold">Attract Shopify Brands</h3>
               <p className="text-sm opacity-80">
-                Brands actively prefer 3PLs with native Shopify integrations. Your white-labeled app
-                makes you the obvious choice.
+                Shopify merchants expect a smooth, integrated fulfillment
+                experience. Your white-labeled app makes you instantly more
+                attractive than legacy 3PLs.
               </p>
             </div>
 
@@ -357,8 +509,9 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg font-semibold">Reduce Merchant Churn</h3>
               <p className="text-sm opacity-80">
-                When merchants depend on your integration for daily order flow, switching to another
-                3PL becomes painful and risky.
+                When your integration becomes part of a merchant&apos;s daily
+                operations, moving away is costly and risky. That keeps your
+                clients around longer.
               </p>
             </div>
 
@@ -370,8 +523,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg font-semibold">Increase Lifetime Value</h3>
               <p className="text-sm opacity-80">
-                Better onboarding, higher trust, fewer errors - OrderShifter directly increases
-                merchant retention and revenue without increasing overhead.
+                Better onboarding, higher trust, and fewer errors directly
+                increase the revenue each merchant drives through your 3PL.
               </p>
             </div>
           </div>
@@ -384,34 +537,38 @@ export default function HomePage() {
               Our Dual Efficiency Guarantee
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              Your 3PL shouldn&apos;t have to take on risk to modernize. We back every deployment
-              with a measurable, operations-focused guarantee.
+              Your 3PL shouldn&apos;t have to take on risk to modernize. We back
+              every deployment with a measurable, operations-focused guarantee.
             </p>
           </div>
 
           <div className="max-w-3xl mx-auto space-y-4 text-sm opacity-90">
             <div className="bg-base-200 rounded-xl p-4 shadow-sm">
               <h3 className="text-base font-semibold mb-1">
-                1️⃣ Save at least 15% in operational admin time - or you don&apos;t pay.
+                1️⃣ Save at least 15% in operational admin time.
               </h3>
               <p>
-                If your team doesn&apos;t measurably reduce manual order handling, CSV work, or sync
-                troubleshooting within 60 days, we waive your monthly fees. Simple as that.
+                If your team doesn&apos;t measurably reduce manual order handling,
+                CSV work, and sync troubleshooting within the first 90 days, we
+                work with you until you do or extend your license at no extra
+                cost.
               </p>
             </div>
 
             <div className="bg-base-200 rounded-xl p-4 shadow-sm">
               <h3 className="text-base font-semibold mb-1">
-                2️⃣ Go live in 5 business days - or your entire setup fee is refunded.
+                2️⃣ Go live in 5 business days – or your setup fee is refunded.
               </h3>
               <p>
-                No drawn-out integrations or endless projects. If we don&apos;t deliver a working
-                Shopify → WMS connection within 5 business days, we refund 100% of your setup fee.
+                No drawn-out integrations or endless projects. If we don&apos;t
+                deliver a working Shopify → WMS connection within 5 business
+                days, we refund 100% of your onboarding fee.
               </p>
             </div>
 
             <p className="text-xs opacity-70 text-center">
-              Zero risk. Real efficiency. Backed by the strongest guarantee in 3PL automation.
+              Zero risk. Real efficiency. Backed by the strongest guarantee in
+              3PL automation.
             </p>
           </div>
         </section>
@@ -422,73 +579,104 @@ export default function HomePage() {
           className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
           <div className="text-center space-y-1 py-4">
-            <h2 className="text-2xl md:text-3xl font-bold">Simple, Scalable Pricing</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Simple, Expansion-Friendly Pricing
+            </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              Built for 3PLs who want a branded Shopify integration fast.
+              Start with a one-time early partner license, then scale on
+              predictable monthly pricing as you grow.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto px-2 sm:px-3">
-            {/* One-Time Integration */}
-            <div className="card bg-base-200 shadow">
+            {/* Early Partner License */}
+            <div className="card bg-base-200 shadow border-2 border-primary">
               <div className="card-body text-center">
                 <h3 className="card-title justify-center text-base">
-                  Integration Setup &amp; Monthly Usage
+                  Early Partner License
                 </h3>
 
-                <p className="text-4xl font-bold mt-2">$3,500</p>
-                <p className="text-sm opacity-70">One-time onboarding + integration</p>
+                <p className="text-4xl font-bold mt-2">$5,000</p>
+                <p className="text-sm opacity-70">
+                  One-time onboarding license (includes 12 months of Essential
+                  tier access).
+                </p>
 
                 <div className="divider my-3" />
 
-                <p className="text-lg font-semibold">
-                  Then monthly based on number of stores:
-                </p>
-
-                <div className="space-y-1.5 mt-3">
-                  <p className="text-sm opacity-80">
-                    • From <strong>$49/mo</strong> for small merchants
-                  </p>
-                  <p className="text-sm opacity-80">
-                    • Up to <strong>$299/mo</strong> for larger brands or multi-store setups
-                  </p>
+                <div className="space-y-1.5 mt-1 text-sm opacity-80">
+                  <p>✓ 5-day go-live implementation</p>
+                  <p>✓ Branded Shopify app &amp; portal</p>
+                  <p>✓ WMS mapping &amp; routing defaults</p>
+                  <p>✓ Smart delay &amp; exception engine</p>
+                  <p>✓ 12 months of Essential tier included</p>
                 </div>
 
                 <p className="text-xs opacity-60 mt-3">
-                  Includes branded Shopify app, onboarding portal, WMS connector, automation engine,
-                  and the OrderShifter Dual Efficiency Guarantee.
+                  After 12 months, continue on a monthly plan. Upgrades and
+                  premium modules can be added anytime and are auto-billed
+                  monthly.
                 </p>
 
-                <Link href="/signup" className="btn btn-gradient btn-sm mt-4">
-                  Get Started
+                <Link href="/contact" className="btn btn-gradient btn-sm mt-4">
+                  Request Early Partner Spot
                 </Link>
               </div>
             </div>
 
-            {/* Exclusive Annual License */}
-            <div className="card bg-base-200 shadow border-2 border-primary">
-              <div className="card-body text-center">
+            {/* Monthly Plans Overview */}
+            <div className="card bg-base-200 shadow">
+              <div className="card-body">
                 <h3 className="card-title justify-center text-base">
-                  Exclusive Annual Partner License
+                  Ongoing Monthly Plans
                 </h3>
 
-                <p className="text-4xl font-bold mt-2">$5,000</p>
-                <p className="text-sm opacity-60">12 months. Unlimited merchants.</p>
-
-                <div className="space-y-1.5 mt-3 text-sm opacity-80">
-                  <p>✓ Unlimited stores &amp; warehouses</p>
-                  <p>✓ Priority onboarding &amp; support</p>
-                  <p>✓ Perfect for scaling 3PLs</p>
-                </div>
-
-                <p className="text-xs opacity-60 mt-3">
-                  After 12 months, continue at standard monthly rates and remains fully covered by
-                  the OrderShifter Dual Efficiency Guarantee.
+                <p className="text-sm opacity-70 text-center mt-1">
+                  Choose your tier after your first 12 months, or upgrade sooner
+                  if you need advanced features.
                 </p>
 
-                <Link href="/contact" className="btn btn-outline btn-sm mt-4">
-                  Request License
-                </Link>
+                <div className="space-y-3 mt-4 text-sm opacity-80">
+                  <div>
+                    <p className="font-semibold">Essential – $399/mo</p>
+                    <p>
+                      Core Shopify → WMS sync, branded app, routing rules, and
+                      smart delay window for one or more warehouses.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Growth – $699/mo</p>
+                    <p>
+                      Everything in Essential plus SLA dashboards, address
+                      validation, richer exception handling, and upgraded
+                      analytics.
+                    </p>
+                    <p className="mt-1">
+                      Early partners pay only the difference during year one
+                      (Growth upgrade: +$300/mo).
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">Pro – $1,499/mo</p>
+                    <p>
+                      For larger 3PLs with multiple warehouses and higher
+                      complexity – includes premium modules like forecasting and
+                      deeper analytics.
+                    </p>
+                    <p className="mt-1">
+                      Early partners pay only the difference during year one
+                      (Pro upgrade: +$1,100/mo).
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs opacity-60 mt-3 text-center">
+                  Extra merchants and premium modules are billed as a single,
+                  consolidated monthly charge via auto-billing – no manual
+                  invoices to chase.
+                </p>
               </div>
             </div>
           </div>
@@ -500,7 +688,9 @@ export default function HomePage() {
           className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
         >
           <div className="text-center space-y-1 py-4">
-            <h2 className="text-2xl md:text-3xl font-bold">Frequently Asked Questions</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Frequently Asked Questions
+            </h2>
           </div>
 
           <div className="max-w-3xl mx-auto space-y-3 px-2 sm:px-3">
@@ -511,8 +701,9 @@ export default function HomePage() {
               </div>
               <div className="collapse-content text-sm opacity-80">
                 <p>
-                  No - CSV/SFTP is fully supported. If you have an API, we can leverage it, but it&apos;s
-                  not required for a successful rollout.
+                  No. CSV/SFTP is fully supported. If you have an API, we can
+                  leverage it, but it&apos;s not required for a successful
+                  rollout or for your 5-day go-live.
                 </p>
               </div>
             </div>
@@ -524,9 +715,9 @@ export default function HomePage() {
               </div>
               <div className="collapse-content text-sm opacity-80">
                 <p>
-                  Yes. Your merchants connect through your branded portal with guided steps, smart
-                  defaults, and clear sync status so your team doesn&apos;t have to handhold every
-                  setup.
+                  Yes. Your merchants connect through your branded portal with
+                  guided steps, pre-filled routing defaults, and clear sync
+                  status. Your team doesn&apos;t have to handhold every setup.
                 </p>
               </div>
             </div>
@@ -534,12 +725,56 @@ export default function HomePage() {
             <div className="collapse collapse-arrow bg-base-200">
               <input type="checkbox" />
               <div className="collapse-title text-base font-medium">
-                How fast does it sync?
+                Does OrderShifter support order delay windows?
               </div>
               <div className="collapse-content text-sm opacity-80">
                 <p>
-                  Most order and tracking updates appear within seconds, powered by background job
-                  queues and retry logic to handle spikes or temporary failures.
+                  Yes. You can configure delay windows (for example, 2, 4, or 6
+                  hours) before orders are exported to your WMS. During that
+                  window we watch for cancellations, edits, and address changes.
+                </p>
+              </div>
+            </div>
+
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="checkbox" />
+              <div className="collapse-title text-base font-medium">
+                Can we route orders across multiple 3PLs?
+              </div>
+              <div className="collapse-content text-sm opacity-80">
+                <p>
+                  Yes. Orders can be routed based on country, region, postal
+                  prefix, SKUs, tags, or shipping methods. You can safely support
+                  merchants that work with multiple 3PLs in parallel.
+                </p>
+              </div>
+            </div>
+
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="checkbox" />
+              <div className="collapse-title text-base font-medium">
+                Do merchants see your brand or ours?
+              </div>
+              <div className="collapse-content text-sm opacity-80">
+                <p>
+                  They see your brand. The Shopify app, the invite link, and the
+                  portal are all white-labeled with your logo and colors.
+                  OrderShifter stays behind the scenes.
+                </p>
+              </div>
+            </div>
+
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="checkbox" />
+              <div className="collapse-title text-base font-medium">
+                How does billing work?
+              </div>
+              <div className="collapse-content text-sm opacity-80">
+                <p>
+                  You pay a one-time $5,000 onboarding license, then everything
+                  else is auto-billed monthly: upgrades, extra merchants, and
+                  premium modules. You receive one consolidated invoice per
+                  month, with no manual payments to chase.
                 </p>
               </div>
             </div>
