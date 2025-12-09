@@ -87,7 +87,7 @@ export default function HomePage() {
           </div>
 
           <p className="text-sm opacity-70 pt-1">
-            Backed by the OrderShifter Dual Efficiency Guarantee – go live in 5
+            Backed by the OrderShifter Dual Efficiency Guarantee - go live in 5
             business days and see at least a 15% reduction in admin time, or we
             make it right.
           </p>
@@ -119,7 +119,7 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Smart Order Delay</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Add a configurable delay window (1–12 hours) before orders are
+                  Add a configurable delay window (1-12 hours) before orders are
                   sent to your WMS. Catch cancellations, edits, fraud holds, and
                   address changes before they become expensive mistakes.
                 </p>
@@ -186,7 +186,7 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Branded Shopify App</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Merchants install your app – your name, logo, and colors.
+                  Merchants install your app - your name, logo, and colors.
                   OrderShifter runs behind the scenes as your private tech
                   engine.
                 </p>
@@ -219,7 +219,7 @@ export default function HomePage() {
               Strengthen Your 3PL&apos;s Brand
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              OrderShifter runs quietly in the background – your merchants see
+              OrderShifter runs quietly in the background - your merchants see
               your logo, your colors, your portal.
             </p>
           </div>
@@ -460,7 +460,7 @@ export default function HomePage() {
                 <p className="text-sm opacity-80">
                   Orders are routed using your rules, held in a smart delay
                   window, validated for errors, sent to your WMS, and synced back
-                  to Shopify with tracking – no babysitting required.
+                  to Shopify with tracking - no babysitting required.
                 </p>
               </div>
             </div>
@@ -557,7 +557,7 @@ export default function HomePage() {
 
             <div className="bg-base-200 rounded-xl p-4 shadow-sm">
               <h3 className="text-base font-semibold mb-1">
-                2️⃣ Go live in 5 business days – or your setup fee is refunded.
+                2️⃣ Go live in 5 business days - or your setup fee is refunded.
               </h3>
               <p>
                 No drawn-out integrations or endless projects. If we don&apos;t
@@ -638,7 +638,7 @@ export default function HomePage() {
 
                 <div className="space-y-3 mt-4 text-sm opacity-80">
                   <div>
-                    <p className="font-semibold">Essential – $399/mo</p>
+                    <p className="font-semibold">Essential - $399/mo</p>
                     <p>
                       Core Shopify → WMS sync, branded app, routing rules, and
                       smart delay window for one or more warehouses.
@@ -646,7 +646,7 @@ export default function HomePage() {
                   </div>
 
                   <div>
-                    <p className="font-semibold">Growth – $699/mo</p>
+                    <p className="font-semibold">Growth - $699/mo</p>
                     <p>
                       Everything in Essential plus SLA dashboards, address
                       validation, richer exception handling, and upgraded
@@ -659,10 +659,10 @@ export default function HomePage() {
                   </div>
 
                   <div>
-                    <p className="font-semibold">Pro – $1,499/mo</p>
+                    <p className="font-semibold">Pro - $1,499/mo</p>
                     <p>
                       For larger 3PLs with multiple warehouses and higher
-                      complexity – includes premium modules like forecasting and
+                      complexity - includes premium modules like forecasting and
                       deeper analytics.
                     </p>
                     <p className="mt-1">
@@ -674,8 +674,7 @@ export default function HomePage() {
 
                 <p className="text-xs opacity-60 mt-3 text-center">
                   Extra merchants and premium modules are billed as a single,
-                  consolidated monthly charge via auto-billing – no manual
-                  invoices to chase.
+                  consolidated monthly charge.
                 </p>
               </div>
             </div>
@@ -774,7 +773,7 @@ export default function HomePage() {
                   You pay a one-time $5,000 onboarding license, then everything
                   else is auto-billed monthly: upgrades, extra merchants, and
                   premium modules. You receive one consolidated invoice per
-                  month, with no manual payments to chase.
+                  month.
                 </p>
               </div>
             </div>
