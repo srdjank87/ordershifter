@@ -49,7 +49,7 @@ export default function HomePage() {
               Login
             </Link>
             <Link href="/signup" className="btn btn-gradient btn-sm">
-              Start free trial
+              Get Started
             </Link>
           </div>
         </div>
@@ -79,7 +79,7 @@ export default function HomePage() {
 
           <div className="flex justify-center gap-4 pt-2">
             <Link href="/signup" className="btn btn-gradient btn-lg">
-              Start Free Trial
+              Get Started
             </Link>
             <Link href="/demo" className="btn btn-outline btn-lg">
               Watch Live Demo
@@ -486,7 +486,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="text-center">
+          <div className="text-center pt-5">
             <Link href="/signup" className="btn btn-gradient btn-lg">
               Get Started
             </Link>
@@ -554,7 +554,7 @@ export default function HomePage() {
         <section className="py-6 px-4 pb-10 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
           <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">
-              Our Dual Efficiency Guarantee
+              Our Three-Shield Performance Guarantee
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
               Your 3PL shouldn&apos;t have to take on risk to modernize. We back
@@ -567,22 +567,25 @@ export default function HomePage() {
               <h3 className="text-base font-semibold mb-1">
                 1️⃣ Save at least 15% in operational admin time.
               </h3>
+              <p>If your team doesn’t measurably reduce manual order handling, CSV tasks, and exception troubleshooting within the first 90 days, we extend your subscription free for 3 months.</p>
+             <br/><p><b><i>Most 3PLs see a 20–50% efficiency gain, but we guarantee a conservative minimum of 15%.</i></b></p>
+            </div>
+
+            <div className="bg-base-200 rounded-xl p-4 shadow-sm">
+              <h3 className="text-base font-semibold mb-1">
+                2️⃣ Go live in 5 business days - or get $1,500 back.
+              </h3>
               <p>
-                If your team doesn&apos;t measurably reduce manual order handling,
-                CSV work, and sync troubleshooting within the first 90 days, we
-                work with you until you do or extend your license at no extra
-                cost.
+                No drawn-out integrations or endless projects. If we don’t deliver a working branded Shopify → WMS connection within 5 business days, we refund $1,500 of your setup fee. <b>No delays, no excuses</b>.
               </p>
             </div>
 
             <div className="bg-base-200 rounded-xl p-4 shadow-sm">
               <h3 className="text-base font-semibold mb-1">
-                2️⃣ Go live in 5 business days - or your setup fee is refunded.
+                3️⃣ Never lose a merchant due to a sync failure.
               </h3>
               <p>
-                No drawn-out integrations or endless projects. If we don&apos;t
-                deliver a working Shopify → WMS connection within 5 business
-                days, we refund 100% of your onboarding fee.
+                If a merchant churns because of an OrderShifter sync failure, we fix the issue immediately — and extend your subscription by <b>3 months at no cost</b>.
               </p>
             </div>
 
@@ -600,7 +603,7 @@ export default function HomePage() {
         >
           <div className="text-center space-y-1 py-4">
             <h2 className="text-2xl md:text-3xl font-bold">
-              Simple, Expansion-Friendly Pricing
+              Simple, Scalable Pricing
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
               Start with a one-time early partner license, then scale on
