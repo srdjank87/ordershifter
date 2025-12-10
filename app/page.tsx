@@ -585,7 +585,7 @@ export default function HomePage() {
                 3️⃣ Never lose a merchant due to a sync failure.
               </h3>
               <p>
-                If a merchant churns because of an OrderShifter sync failure, we fix the issue immediately — and extend your subscription by <b>3 months at no cost</b>.
+                If a merchant churns because of an OrderShifter sync failure, we fix the issue immediately - and extend your subscription by <b>3 months at no cost</b>.
               </p>
             </div>
 
