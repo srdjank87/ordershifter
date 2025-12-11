@@ -92,17 +92,6 @@ export default function HomePage() {
           </p>
         </section>
 
-        {/* SOCIAL PROOF STRIP */}
-        <section className="bg-base-200 rounded-xl border border-base-300 py-3 px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-xs md:text-sm opacity-80">
-            <p>Designed for 3PLs handling multi-channel Shopify volume.</p>
-            <p className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-success" />
-              Ideal for 3PLs with 5–50+ Shopify merchants.
-            </p>
-          </div>
-        </section>
-
         {/* CORE BENEFITS */}
         <section
           id="benefits"
@@ -222,47 +211,42 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* BEFORE / AFTER TRANSFORMATION */}
-        <section
-          id="before-after"
-          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300"
-        >
-          <div className="text-center space-y-1 pb-4">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              From Manual Firefighting to Predictable Flow
-            </h2>
-            <p className="text-sm opacity-70 max-w-xl mx-auto">
-              See the day-to-day reality of running Shopify brands through a
-              traditional 3PL stack versus running them through OrderShifter.
-            </p>
-          </div>
+        {/* BEFORE / AFTER (Image Version) */}
+<section
+  id="before-after"
+  className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300"
+>
+  <div className="text-center space-y-1 pb-4">
+    <h2 className="text-2xl md:text-3xl font-bold">
+      From firefighting to predictable, clean order flow
+    </h2>
+    <p className="text-sm opacity-70 max-w-2xl mx-auto">
+      See how your operations look before and after implementing OrderShifter.
+    </p>
+  </div>
 
-          <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto text-sm">
-            <div className="bg-base-200 rounded-xl p-4 border border-base-300">
-              <h3 className="font-semibold mb-2">Before OrderShifter</h3>
-              <ul className="space-y-1 opacity-80 list-disc list-inside">
-                <li>Ops team checking Shopify, inbox, and spreadsheets all day.</li>
-                <li>Orders re-downloaded after merchant edits or fraud holds.</li>
-                <li>Addresses fixed at the last minute in the WMS.</li>
-                <li>“Where is this order?” tickets from nervous merchants.</li>
-                <li>CSV imports fail overnight with no visibility.</li>
-                <li>Multi-3PL merchants cause routing confusion and mistakes.</li>
-              </ul>
-            </div>
+  <div className="grid md:grid-cols-2 gap-6">
+    
+    {/* BEFORE IMAGE */}
+    <div className="flex flex-col items-center">
+      <img
+        src="/before.png"
+        alt="Before OrderShifter"
+        className="rounded-xl shadow-md w-full object-cover bg-base-200"
+      />
+    </div>
 
-            <div className="bg-base-200 rounded-xl p-4 border border-primary/50">
-              <h3 className="font-semibold mb-2">After OrderShifter</h3>
-              <ul className="space-y-1 opacity-80 list-disc list-inside">
-                <li>Orders held in a smart delay window and validated automatically.</li>
-                <li>Clean, pre-validated data exported to your WMS on a schedule.</li>
-                <li>Routing based on country, region, SKU, tags, or shipping method.</li>
-                <li>Exceptions surfaced in one place with clear resolution paths.</li>
-                <li>Tracking sync reduces support tickets and merchant anxiety.</li>
-                <li>Merchants onboard themselves through your branded portal.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
+    {/* AFTER IMAGE */}
+    <div className="flex flex-col items-center">
+      <img
+        src="/after.png"
+        alt="After OrderShifter"
+        className="rounded-xl shadow-md w-full object-cover bg-base-200"
+      />
+    </div>
+    
+  </div>
+</section>
 
         {/* WHITE-LABEL EXPERIENCE / MOCKUP */}
         <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
