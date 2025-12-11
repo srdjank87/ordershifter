@@ -88,7 +88,7 @@ export default function HomePage() {
           </div>
 
           <p className="text-sm opacity-70 pt-1">
-            Backed by the OrderShifter Three-Shield Performance Guarantee — fast-track go-live, guaranteed efficiency lift, and merchant retention protection.
+            Backed by the OrderShifter Three-Shield Performance Guarantee - fast-track go-live, guaranteed efficiency lift, and merchant retention protection.
           </p>
         </section>
 
@@ -373,7 +373,7 @@ export default function HomePage() {
               <div>
                 <h3 className="text-lg font-semibold">Connect Your 3PL &amp; WMS</h3>
                 <p className="opacity-80">
-                  We configure your tenant, branding, WMS mapping, and routing
+                  We configure your app, branding, WMS mapping, and routing
                   defaults. CSV/SFTP works out of the box; APIs are optional. Your
                   WMS stays exactly as it is.
                 </p>
@@ -502,8 +502,7 @@ export default function HomePage() {
                 </div>
                 <p className="opacity-80 mb-2">
                   Add deeper automation as needed – without changing your core
-                  setup:
-                </p>
+                  setup:</p>
                 <ul className="list-disc list-inside opacity-80 space-y-1">
                   <li>Inventory Sync Lite</li>
                   <li>Returns &amp; RMA Workflows</li>
@@ -638,9 +637,7 @@ export default function HomePage() {
             {/* Shield 1 */}
             <div className="card bg-base-200 shadow-sm p-4">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
-                  <Clock className="w-6 h-6" />
-                </div>
+                
                 <h3 className="text-base font-semibold">
                   1️⃣ Save at least 15% in operational admin time.
                 </h3>
@@ -657,11 +654,8 @@ export default function HomePage() {
             {/* Shield 2 */}
             <div className="card bg-base-200 shadow-sm p-4">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
                 <h3 className="text-base font-semibold">
-                  2️⃣ Go live in 5 business days — or get $1,500 back.
+                  2️⃣ Go live in 5 business days - or get $1,500 back.
                 </h3>
               </div>
               <p className="text-sm opacity-80">
@@ -675,9 +669,6 @@ export default function HomePage() {
             {/* Shield 3 */}
             <div className="card bg-base-200 shadow-sm p-4">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
                 <h3 className="text-base font-semibold">
                   3️⃣ Never lose a merchant due to a sync failure.
                 </h3>
@@ -782,7 +773,7 @@ export default function HomePage() {
                   <div>
                     <p className="font-semibold">Pro – $1,499/mo</p>
                     <p>
-                      For larger 3PLs with multiple warehouses and higher complexity —
+                      For larger 3PLs with multiple warehouses and higher complexity -
                       includes premium modules like forecasting and deeper analytics.
                     </p>
                     <p className="mt-1">
@@ -811,7 +802,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto text-sm">
             <div className="bg-base-200 rounded-xl p-4 border border-success/40">
-              <h3 className="font-semibold mb-2">Perfect Fit If You&apos;re a 3PL That:</h3>
+              <h3 className="text-base font-semibold mb-2">Perfect Fit If You&apos;re a 3PL That:</h3>
               <ul className="list-disc list-inside opacity-80 space-y-1">
                 <li>Works with Shopify or plans to target more Shopify brands.</li>
                 <li>Wants to look like a tech-enabled partner, not a commodity warehouse.</li>
@@ -822,7 +813,7 @@ export default function HomePage() {
             </div>
 
             <div className="bg-base-200 rounded-xl p-4 border border-base-300">
-              <h3 className="font-semibold mb-2">Not a Fit If You:</h3>
+              <h3 className="text-base font-semibold mb-2">Not a Fit If You:</h3>
               <ul className="list-disc list-inside opacity-80 space-y-1">
                 <li>Don&apos;t work with Shopify merchants and don&apos;t plan to.</li>
                 <li>Prefer one-off custom integrations for each client.</li>
@@ -942,10 +933,10 @@ export default function HomePage() {
           </p>
           <div className="flex justify-center gap-3">
             <Link href="/contact" className="btn btn-gradient btn-md">
-              Request Early Partner Spot
+              Get Started
             </Link>
             <Link href="/demo" className="btn btn-outline btn-md">
-              Watch Product Walkthrough
+              Watch Live Demo
             </Link>
           </div>
         </section>
