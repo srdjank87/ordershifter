@@ -186,7 +186,7 @@ export default function HomePage() {
                   <h3 className="card-title text-base">Branded Shopify App</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Merchants install your app – your name, logo, and colors.
+                  Merchants install the app – your name, logo, and colors.
                   OrderShifter runs behind the scenes as your private tech engine.
                 </p>
               </div>
@@ -270,7 +270,7 @@ export default function HomePage() {
                 <p className="font-semibold">White-Labeled Shopify App</p>
               </div>
               <p>
-                Your app name, logo, and brand colors appear in the merchant&apos;s
+                Your business name, logo, and brand colors appear in the merchant&apos;s
                 Shopify admin. To them, this is your native integration – not a
                 generic third-party connector.
               </p>
@@ -282,7 +282,7 @@ export default function HomePage() {
                 <p className="font-semibold">Self-Serve Merchant Onboarding</p>
               </div>
               <p>
-                Merchants click your invite link, install your app, and choose which
+                Merchants click your invite link, install the app, and choose which
                 regions and SKUs you handle. Most go live in under two minutes,
                 without your team hand-holding every step.
               </p>
@@ -373,7 +373,7 @@ export default function HomePage() {
               <div>
                 <h3 className="text-lg font-semibold">Connect Your 3PL &amp; WMS</h3>
                 <p className="opacity-80">
-                  We configure your app, branding, WMS mapping, and routing
+                  We configure your settings, branding, WMS mapping, and routing
                   defaults. CSV/SFTP works out of the box; APIs are optional. Your
                   WMS stays exactly as it is.
                 </p>
@@ -931,7 +931,7 @@ export default function HomePage() {
             low-risk way to modernize your Shopify fulfillment in the next 5
             business days.
           </p>
-          <div className="flex justify-center gap-3">
+          <div className="flex justify-center gap-3 pt-4">
             <Link href="/contact" className="btn btn-gradient btn-md">
               Get Started
             </Link>
