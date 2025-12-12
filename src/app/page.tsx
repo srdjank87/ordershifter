@@ -88,7 +88,7 @@ export default function HomePage() {
           </div>
 
           <p className="text-sm opacity-70 pt-1">
-            Backed by the OrderShifter Three-Shield Performance Guarantee - fast-track go-live, guaranteed efficiency lift, and merchant retention protection.
+            Backed by the OrderShifter Three-Shield Performance Guarantee - guaranteed efficiency lift, 5-day go-live, and merchant retention protection.
           </p>
         </section>
 
