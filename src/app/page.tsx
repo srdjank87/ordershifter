@@ -5,15 +5,15 @@ import {
   Zap,
   Store,
   Handshake,
-  Users,
   LayoutDashboard,
   TrendingUp,
   Clock,
   AlertTriangle,
   Map,
   Activity,
-  ShieldCheck,
 } from "lucide-react";
+
+import Image from "next/image";
 
 export default function HomePage() {
   return (
@@ -226,26 +226,32 @@ export default function HomePage() {
   </div>
 
   <div className="grid md:grid-cols-2 gap-6">
-    
-    {/* BEFORE IMAGE */}
-    <div className="flex flex-col items-center">
-      <img
+  {/* BEFORE IMAGE */}
+  <div className="flex flex-col items-center">
+    <div className="relative w-full aspect-video">
+      <Image
         src="/before.png"
         alt="Before OrderShifter"
-        className="rounded-xl shadow-md w-full object-cover bg-base-200"
+        fill
+        className="rounded-xl shadow-md object-cover bg-base-200"
+        priority
       />
     </div>
+  </div>
 
-    {/* AFTER IMAGE */}
-    <div className="flex flex-col items-center">
-      <img
+  {/* AFTER IMAGE */}
+  <div className="flex flex-col items-center">
+    <div className="relative w-full aspect-video">
+      <Image
         src="/after.png"
         alt="After OrderShifter"
-        className="rounded-xl shadow-md w-full object-cover bg-base-200"
+        fill
+        className="rounded-xl shadow-md object-cover bg-base-200"
       />
     </div>
-    
   </div>
+</div>
+
 </section>
 
         {/* WHITE-LABEL EXPERIENCE / MOCKUP */}

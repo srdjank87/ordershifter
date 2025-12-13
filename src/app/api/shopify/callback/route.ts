@@ -61,7 +61,7 @@ export async function GET(req: Request) {
   });
 
   // Upsert MerchantAccount
-  const merchant = await prisma.merchantAccount.upsert({
+  await prisma.merchantAccount.upsert({
     where: { tenantId_shopDomain: { tenantId: tenant.id, shopDomain: shop } },
     update: {
       status: "INSTALLED",
