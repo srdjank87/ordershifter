@@ -398,15 +398,15 @@ export default function HomePage() {
                 2
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Invite Your Shopify Merchants<span className="inline-flex items-center gap-2 pl-2">
+                <h3 className="text-lg font-semibold flex items-center"><span>Invite Your Shopify Merchants</span><span className="inline-flex items-center gap-2 pl-2">
   <Image
         src="/shopify-icon.svg"
         alt="Shopify icon"
         width={20}
         height={20}
         priority
-      />
-</span></h3>
+      /></span>
+</h3>
                 <p className="opacity-80">
                   Merchants receive your invite link, install the app once, then connect specifically to your fulfillment operation - choosing which regions, SKUs, and workflows you handle, all in a few guided steps.
                 </p>
