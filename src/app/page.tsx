@@ -11,6 +11,9 @@ import {
   AlertTriangle,
   Map,
   Activity,
+  Lock,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 
 import Image from "next/image";
@@ -20,41 +23,40 @@ export default function HomePage() {
     <main className="min-h-screen bg-base-100">
       {/* HEADER / NAVBAR */}
       <header className="border-b border-base-300 bg-base-100">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-lg">
-              Order<span className="text-primary">Shifter</span>
-            </span>
-          </Link>
+  <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
+    
+    {/* LOGO */}
+    <Link href="/" className="flex items-center gap-1">
+      <Image
+        src="icon.svg"
+        alt="OrderShifter logo"
+        width={32}
+        height={32}
+        priority
+      />
+      <span className="font-bold text-lg leading-none">
+        <span className="text-base-content">Order</span>
+        <span className="text-primary">Shifter</span>
+      </span>
+    </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="#benefits" className="link link-hover">
-              Benefits
-            </Link>
-            <Link href="#before-after" className="link link-hover">
-              Before / After
-            </Link>
-            <Link href="#how-it-works" className="link link-hover">
-              How it works
-            </Link>
-            <Link href="#pricing" className="link link-hover">
-              Pricing
-            </Link>
-            <Link href="#faq" className="link link-hover">
-              FAQ
-            </Link>
-          </nav>
+    {/* NAV */}
+    <nav className="hidden md:flex items-center gap-6 text-sm">
+      <Link href="#benefits" className="link link-hover">Benefits</Link>
+      <Link href="#before-after" className="link link-hover">Before / After</Link>
+      <Link href="#how-it-works" className="link link-hover">How it works</Link>
+      <Link href="#pricing" className="link link-hover">Pricing</Link>
+      <Link href="#faq" className="link link-hover">FAQ</Link>
+    </nav>
 
-          <div className="flex items-center gap-2">
-            <Link href="/login" className="btn btn-ghost btn-sm">
-              Login
-            </Link>
-            <Link href="/signup" className="btn btn-gradient btn-sm">
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </header>
+    {/* CTA */}
+    <div className="flex items-center gap-2">
+      <Link href="/login" className="btn btn-ghost btn-sm">Login</Link>
+      <Link href="/signup" className="btn btn-gradient btn-sm">Get Started</Link>
+    </div>
+
+  </div>
+</header>
 
       {/* GLOBAL WRAPPER */}
       <div className="max-w-6xl mx-auto px-4 pb-16 space-y-10">
@@ -183,11 +185,10 @@ export default function HomePage() {
                   <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
                     <Store className="w-5 h-5" />
                   </div>
-                  <h3 className="card-title text-base">Branded Shopify App</h3>
+                  <h3 className="card-title text-base">Branded Merchant Experience</h3>
                 </div>
                 <p className="text-sm opacity-80">
-                  Merchants install the app – your name, logo, and colors.
-                  OrderShifter runs behind the scenes as your private tech engine.
+                  Merchants interact with a fulfillment experience centered around your 3PL - your workflows, your routing rules, your operational logic. OrderShifter quietly powers the automation behind the scenes.
                 </p>
               </div>
             </div>
@@ -227,28 +228,27 @@ export default function HomePage() {
 
   <div className="grid md:grid-cols-2 gap-6">
   {/* BEFORE IMAGE */}
-  <div className="flex flex-col items-center">
-    <div className="relative w-full aspect-video">
-      <Image
-        src="/before.png"
-        alt="Before OrderShifter"
-        fill
-        className="rounded-xl shadow-md object-cover bg-base-200"
-        priority
-      />
-    </div>
+  <div className="relative w-full aspect-2/3 bg-base-200 rounded-xl shadow-md overflow-hidden">
+    <Image
+      src="/before.png"
+      alt="Before OrderShifter"
+      fill
+      className="object-contain"
+      sizes="(min-width: 768px) 50vw, 100vw"
+      priority
+    />
   </div>
 
   {/* AFTER IMAGE */}
-  <div className="flex flex-col items-center">
-    <div className="relative w-full aspect-video">
-      <Image
-        src="/after.png"
-        alt="After OrderShifter"
-        fill
-        className="rounded-xl shadow-md object-cover bg-base-200"
-      />
-    </div>
+  <div className="relative w-full aspect-2/3 bg-base-200 rounded-xl shadow-md overflow-hidden">
+    <Image
+      src="/after.png"
+      alt="After OrderShifter"
+      fill
+      className="object-contain"
+      sizes="(min-width: 768px) 50vw, 100vw"
+      priority
+    />
   </div>
 </div>
 
@@ -258,12 +258,10 @@ export default function HomePage() {
         <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
           <div className="text-center space-y-1 pb-2">
             <h2 className="text-2xl md:text-3xl font-bold">
-              Your Merchants See Your Brand – Not Ours
+              Your Merchants See Your Brand - Not Ours
             </h2>
             <p className="text-sm opacity-70 max-w-xl mx-auto">
-              OrderShifter stays behind the scenes. Your merchants interact with a
-              clean, branded Shopify app and portal that makes your 3PL feel like a
-              modern tech platform, not just a warehouse.
+              Merchants install OrderShifter once, then work within a fulfillment connection tailored to your operation - while OrderShifter handles validation, routing, and sync logic invisibly underneath.
             </p>
           </div>
 
@@ -273,12 +271,10 @@ export default function HomePage() {
                 <div className="p-2 rounded-full bg-primary/10 text-primary">
                   <Store className="w-5 h-5" />
                 </div>
-                <p className="font-semibold">White-Labeled Shopify App</p>
+                <p className="font-semibold">White-Labeled Shopify Dashboard</p>
               </div>
               <p>
-                Your business name, logo, and brand colors appear in the merchant&apos;s
-                Shopify admin. To them, this is your native integration – not a
-                generic third-party connector.
+                Merchants interact with dashboards, routing rules, and fulfillment logic that are branded and scoped to your 3PL - making you look like a modern, tech-enabled partner.
               </p>
 
               <div className="flex items-center gap-3 pt-2">
@@ -310,7 +306,7 @@ export default function HomePage() {
             <div className="bg-base-200 rounded-xl border border-dashed border-base-300 flex items-center justify-center p-6 text-center text-xs md:text-sm opacity-70">
               <div>
                 <p className="font-semibold mb-1">
-                  Branded Shopify App &amp; Merchant Portal Preview
+                  Branded Shopify Dashboard &amp; Merchant Portal Preview
                 </p>
                 <p>
                   This is where you can later drop a screenshot of your app listing
@@ -393,9 +389,7 @@ export default function HomePage() {
               <div>
                 <h3 className="text-lg font-semibold">Invite Your Shopify Merchants</h3>
                 <p className="opacity-80">
-                  Merchants receive your invite link, install your branded app, and
-                  choose which regions and SKUs you handle. Most go live in under
-                  two minutes without your team manually configuring each one.
+                  Merchants receive your invite link, install the app once, then connect specifically to your fulfillment operation - choosing which regions, SKUs, and workflows you handle, all in a few guided steps.
                 </p>
               </div>
             </div>
@@ -411,7 +405,7 @@ export default function HomePage() {
                 <p className="opacity-80">
                   Orders are routed by your rules, held in a smart delay window,
                   validated for errors, sent to your WMS, and synced back to Shopify
-                  with tracking – no babysitting required.
+                  with tracking - no babysitting required.
                 </p>
               </div>
             </div>
@@ -451,7 +445,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto text-sm">
             {/* Smart Routing Rules */}
-            <div className="card bg-base-200 shadow-sm">
+            <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
@@ -473,7 +467,7 @@ export default function HomePage() {
             </div>
 
             {/* Smart Delay & Exceptions */}
-            <div className="card bg-base-200 shadow-sm">
+            <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
@@ -497,94 +491,130 @@ export default function HomePage() {
           </div>
 
           {/* Premium Modules */}
-          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-4 text-sm">
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
-                    <Activity className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-semibold">Premium Modules (Optional)</h3>
-                </div>
-                <p className="opacity-80 mb-2">
-                  Add deeper automation as needed – without changing your core
-                  setup:</p>
-                <ul className="list-disc list-inside opacity-80 space-y-1">
-                  <li>Inventory Sync Lite</li>
-                  <li>Returns &amp; RMA Workflows</li>
-                  <li>Carrier Intelligence &amp; Delivery Predictions</li>
-                  <li>Capacity &amp; Volume Forecasting for ops teams</li>
-                </ul>
-              </div>
-            </div>
+          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-4 text-sm items-stretch">
+  {/* Premium Modules */}
+  <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+    {/* replace card-body with a custom wrapper */}
+    <div className="p-6 flex flex-col gap-2 justify-start">
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+          <Activity className="w-5 h-5" />
+        </div>
+        <h3 className="text-base font-semibold">Premium Modules (Optional)</h3>
+      </div>
 
-            {/* ROI / Savings Snapshot */}
-            <div className="card bg-base-200 shadow-sm">
-              <div className="card-body">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
-                    <TrendingUp className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-semibold">Typical 3PL Savings</h3>
-                </div>
-                <p className="opacity-80 mb-2">
-                  Realistic ranges based on medium-sized 3PLs using OrderShifter for
-                  Shopify volumes:
-                </p>
-                <ul className="list-disc list-inside opacity-80 space-y-1">
-                  <li>8–15 hours/week saved on manual order handling.</li>
-                  <li>20–40% fewer exceptions and re-work per week.</li>
-                  <li>20–50% reduction in &quot;Where&apos;s my order?&quot; tickets.</li>
-                  <li>Fewer mis-ships and rushed corrections during peak.</li>
-                </ul>
-                <p className="text-xs opacity-70 mt-2">
-                  For most 3PLs, that translates to $5,000–$20,000/month in avoided
-                  labor, mistakes, and churn – for a $399–$1,499 monthly investment.
-                </p>
-              </div>
-            </div>
-          </div>
+      <p className="opacity-80">
+        Add deeper automation as needed – without changing your core setup:
+      </p>
+
+      <ul className="list-disc list-inside opacity-80 space-y-1">
+        <li>Inventory Sync Lite</li>
+        <li>Returns &amp; RMA Workflows</li>
+        <li>Carrier Intelligence &amp; Delivery Predictions</li>
+        <li>Capacity &amp; Volume Forecasting for ops teams</li>
+      </ul>
+
+      {/* optional: keeps content top-stacked even if future elements added */}
+      <div className="mt-auto" />
+    </div>
+  </div>
+
+  {/* Typical 3PL Savings */}
+  <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+    {/* replace card-body with a custom wrapper */}
+    <div className="p-6 flex flex-col gap-2 justify-start">
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+          <TrendingUp className="w-5 h-5" />
+        </div>
+        <h3 className="text-base font-semibold">Typical 3PL Savings</h3>
+      </div>
+
+      <p className="opacity-80">
+        Realistic ranges based on medium-sized 3PLs using OrderShifter for Shopify volumes:
+      </p>
+
+      <ul className="list-disc list-inside opacity-80 space-y-1">
+        <li>8–15 hours/week saved on manual order handling.</li>
+        <li>20–40% fewer exceptions and re-work per week.</li>
+        <li>20–50% reduction in &quot;Where&apos;s my order?&quot; tickets.</li>
+        <li>Fewer mis-ships and rushed corrections during peak.</li>
+      </ul>
+
+      <p className="text-xs opacity-70 mt-2">
+        For most 3PLs, that translates to $5,000–$20,000/month in avoided labor, mistakes,
+        and churn – for a $399–$1,499 monthly investment.
+      </p>
+
+      {/* optional: keeps everything top-stacked, but equal height */}
+      <div className="mt-auto" />
+    </div>
+  </div>
+</div>
+
+
         </section>
 
         {/* WHY MERCHANTS LOVE THIS */}
         <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
-          <div className="text-center space-y-1 pb-2">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              Why Your Shopify Merchants Will Love You for This
-            </h2>
-            <p className="text-sm opacity-70 max-w-xl mx-auto">
-              OrderShifter quietly makes you the obvious choice when merchants
-              compare 3PLs side-by-side.
-            </p>
-          </div>
+  <div className="text-center space-y-1 pb-2">
+    <h2 className="text-2xl md:text-3xl font-bold">
+      Why Your Shopify Merchants Will Love You for This
+    </h2>
+    <p className="text-sm opacity-70 max-w-xl mx-auto">
+      OrderShifter quietly makes you the obvious choice when merchants
+      compare 3PLs side-by-side.
+    </p>
+  </div>
 
-          <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto text-sm">
-            <div className="bg-base-200 rounded-xl p-4">
-              <h3 className="font-semibold mb-1">Fewer Surprises</h3>
-              <p className="opacity-80">
-                Clean exports, delay windows, and exception handling mean fewer
-                orders going missing or shipping wrong. That translates to fewer
-                surprises on their side – and fewer escalations for you.
-              </p>
-            </div>
-            <div className="bg-base-200 rounded-xl p-4">
-              <h3 className="font-semibold mb-1">Real-Time Confidence</h3>
-              <p className="opacity-80">
-                Merchants see status, routing, and basic sync health in your
-                branded portal, so they&apos;re not guessing what&apos;s happening
-                inside your warehouse.
-              </p>
-            </div>
-            <div className="bg-base-200 rounded-xl p-4">
-              <h3 className="font-semibold mb-1">Less Switching Risk</h3>
-              <p className="opacity-80">
-                When your integration becomes deeply embedded in their daily
-                operations, moving away from your 3PL becomes risky and painful.
-                That gives you a meaningful retention edge.
-              </p>
-            </div>
-          </div>
-        </section>
+  <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto text-sm">
+    {/* Card 1 */}
+    <div className="bg-base-200 rounded-xl p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-primary/10 text-primary animate-popup">
+          <AlertTriangle className="w-5 h-5" />
+        </div>
+        <h3 className="text-base font-semibold">Fewer Surprises</h3>
+      </div>
+      <p className="opacity-80">
+        Clean exports, delay windows, and exception handling mean fewer
+        orders going missing or shipping wrong. That translates to fewer
+        surprises on their side – and fewer escalations for you.
+      </p>
+    </div>
+
+    {/* Card 2 */}
+    <div className="bg-base-200 rounded-xl p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-secondary/10 text-secondary animate-popup">
+          <Activity className="w-5 h-5" />
+        </div>
+        <h3 className="text-base font-semibold">Real-Time Confidence</h3>
+      </div>
+      <p className="opacity-80">
+        Merchants see status, routing, and basic sync health in your
+        branded portal, so they&apos;re not guessing what&apos;s happening
+        inside your warehouse.
+      </p>
+    </div>
+
+    {/* Card 3 */}
+    <div className="bg-base-200 rounded-xl p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-accent/10 text-accent animate-popup">
+          <Lock className="w-5 h-5" />
+        </div>
+        <h3 className="text-base font-semibold">Less Switching Risk</h3>
+      </div>
+      <p className="opacity-80">
+        When your integration becomes deeply embedded in their daily
+        operations, moving away from your 3PL becomes risky and painful.
+        That gives you a meaningful retention edge.
+      </p>
+    </div>
+  </div>
+</section>
+
 
         {/* SOCIAL PROOF / EARLY PARTNER VOICES (FAUX UNTIL REAL) */}
         <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
@@ -611,9 +641,9 @@ export default function HomePage() {
             <div className="bg-base-200 rounded-xl p-4">
               <p className="text-xs opacity-60 mb-1">3PL Specializing in DTC Brands</p>
               <p className="opacity-80">
-                &quot;The branded app is a big deal. We show it on sales calls and
+                &quot;The branded dashboard is a big deal. We show it on sales calls and
                 it instantly sets us apart. Merchants assume we&apos;ve invested in a
-                full dev team – but it&apos;s just OrderShifter under the hood.&quot;
+                full dev team - but it&apos;s just OrderShifter under the hood.&quot;
               </p>
             </div>
             <div className="bg-base-200 rounded-xl p-4">
@@ -641,7 +671,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
             {/* Shield 1 */}
-            <div className="card bg-base-200 shadow-sm p-4">
+            <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md p-4">
               <div className="flex items-center gap-3 mb-2">
                 
                 <h3 className="text-base font-semibold">
@@ -658,7 +688,7 @@ export default function HomePage() {
             </div>
 
             {/* Shield 2 */}
-            <div className="card bg-base-200 shadow-sm p-4">
+            <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md p-4">
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-base font-semibold">
                   2️⃣ Go live in 5 business days - or get $1,500 back.
@@ -673,7 +703,7 @@ export default function HomePage() {
             </div>
 
             {/* Shield 3 */}
-            <div className="card bg-base-200 shadow-sm p-4">
+            <div className="card bg-base-200 shadow-sm transition hover:-translate-y-1 hover:shadow-md p-4">
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-base font-semibold">
                   3️⃣ Never lose a merchant due to a sync failure.
@@ -681,8 +711,7 @@ export default function HomePage() {
               </div>
               <p className="text-sm opacity-80">
                 If a merchant churns because of an OrderShifter sync failure, we fix
-                the issue immediately – and extend your subscription by{" "}
-                <strong>3 months at no cost</strong>.
+                the issue immediately - and extend your subscription by <strong>3 months at no cost</strong>.
               </p>
             </div>
           </div>
@@ -690,145 +719,184 @@ export default function HomePage() {
 
         {/* PRICING WITH ESSENTIAL BREAKDOWN */}
         <section
-          id="pricing"
-          className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
-        >
-          <div className="text-center space-y-1 pb-2">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              Simple, Scalable Pricing for 3PLs
-            </h2>
-            <p className="text-sm opacity-70 max-w-xl mx-auto">
-              Start with a one-time early partner license, then scale on predictable
-              monthly pricing as you grow.
+  id="pricing"
+  className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4"
+>
+  <div className="text-center space-y-1 pb-2">
+    <h2 className="text-2xl md:text-3xl font-bold">
+      Simple, Scalable Pricing for 3PLs
+    </h2>
+    <p className="text-sm opacity-70 max-w-xl mx-auto">
+      Start with a one-time early partner license, then scale on predictable
+      monthly pricing as you grow.
+    </p>
+  </div>
+
+  {/* NOTE: items-start prevents equal-height stretching */}
+  <div className="grid md:grid-cols-2 gap-4 items-start max-w-5xl mx-auto px-2 sm:px-3">
+    {/* Early Partner License */}
+    <div className="card bg-base-200 shadow border-2 border-primary">
+      <div className="card-body text-center">
+        <h3 className="card-title justify-center text-base">
+          Early Partner License
+        </h3>
+
+        <p className="text-4xl font-bold mt-1">$5,000</p>
+        <p className="text-sm opacity-70">
+          One-time onboarding license (includes 12 months of Essential tier access).
+        </p>
+
+        <div className="divider my-2" />
+
+        <div className="space-y-1 text-sm opacity-80">
+          <p>✓ 5-day go-live implementation</p>
+          <p>✓ Branded Shopify portal</p>
+          <p>✓ WMS mapping &amp; routing defaults</p>
+          <p>✓ Smart delay &amp; exception engine</p>
+          <p>✓ 12 months of Essential tier included</p>
+          <p>✓ White-glove VIP support service</p>
+        </div>
+
+        <p className="text-xs opacity-60 mt-2">
+          After 12 months, continue on a monthly plan. Upgrades and premium modules
+          can be added anytime and are auto-billed monthly.
+        </p>
+
+        <Link href="/contact" className="btn btn-gradient btn-sm mt-3">
+          Request Early Partner Spot
+        </Link>
+      </div>
+    </div>
+
+    {/* Monthly Plans Overview */}
+    <div className="card bg-base-200 shadow">
+      <div className="card-body">
+        <h3 className="card-title justify-center text-base">
+          Ongoing Monthly Plans
+        </h3>
+
+        <p className="text-sm opacity-70 text-center mt-1">
+          Upgrade anytime. Early partners only pay the difference during year one.
+        </p>
+
+        <div className="space-y-3 mt-4 text-sm opacity-80">
+          {/* Essential */}
+          <div className="bg-base-100/40 rounded-lg p-3 border border-base-300/60">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-semibold">Essential</p>
+              <p className="font-semibold">$399/mo</p>
+            </div>
+            <p className="text-xs opacity-80 mt-1">
+              Core sync + routing + delay + exceptions + tracking.
             </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto px-2 sm:px-3">
-            {/* Early Partner License */}
-            <div className="card bg-base-200 shadow border-2 border-primary">
-              <div className="card-body text-center">
-                <h3 className="card-title justify-center text-base">
-                  Early Partner License
-                </h3>
-
-                <p className="text-4xl font-bold mt-2">$5,000</p>
-                <p className="text-sm opacity-70">
-                  One-time onboarding license (includes 12 months of Essential tier
-                  access).
-                </p>
-
-                <div className="divider my-3" />
-
-                <div className="space-y-1.5 mt-1 text-sm opacity-80">
-                  <p>✓ 5-day go-live implementation</p>
-                  <p>✓ Branded Shopify app &amp; portal</p>
-                  <p>✓ WMS mapping &amp; routing defaults</p>
-                  <p>✓ Smart delay &amp; exception engine</p>
-                  <p>✓ 12 months of Essential tier included</p>
-                  <p>✓ White-glove VIP support service</p>
-                </div>
-
-                <p className="text-xs opacity-60 mt-3">
-                  After 12 months, continue on a monthly plan. Upgrades and premium
-                  modules can be added anytime and are auto-billed monthly.
-                </p>
-
-                <Link href="/contact" className="btn btn-gradient btn-sm mt-4">
-                  Request Early Partner Spot
-                </Link>
-              </div>
-            </div>
-
-            {/* Monthly Plans Overview with Essential breakdown */}
-            <div className="card bg-base-200 shadow">
-              <div className="card-body text-sm">
-                <h3 className="card-title justify-center text-base">
-                  Ongoing Monthly Plans
-                </h3>
-
-                <p className="text-sm opacity-70 text-center mt-1">
-                  Choose your tier after your first 12 months, or upgrade sooner if
-                  you need advanced features.
-                </p>
-
-                <div className="space-y-3 mt-4 opacity-80">
-                  <div>
-                    <p className="font-semibold">Essential – $399/mo</p>
-                    <ul className="list-disc list-inside space-y-1 mt-1">
-                      <li>Core Shopify → WMS sync layer.</li>
-                      <li>Branded Shopify app &amp; merchant portal.</li>
-                      <li>Routing rules &amp; smart delay window.</li>
-                      <li>Exception detection &amp; tracking sync.</li>
-                      <li>Designed for 3PLs onboarding their first Shopify brands or
-                        consolidating fragile integrations.</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <p className="font-semibold">Growth – $699/mo</p>
-                    <p>
-                      Everything in Essential plus SLA dashboards, address validation,
-                      richer exception handling, and upgraded analytics.
-                    </p>
-                    <p className="mt-1">
-                      Early partners pay only the difference during year one (Growth
-                      upgrade: +$300/mo).
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="font-semibold">Pro – $1,499/mo</p>
-                    <p>
-                      For larger 3PLs with multiple warehouses and higher complexity -
-                      includes premium modules like forecasting and deeper analytics.
-                    </p>
-                    <p className="mt-1">
-                      Early partners pay only the difference during year one (Pro
-                      upgrade: +$1,100/mo).
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-xs opacity-60 mt-3 text-center">
-                  Extra merchants and premium modules are billed as a single,
-                  consolidated monthly charge.
-                </p>
-              </div>
+            <div className="mt-2 text-xs opacity-80">
+              <p>Includes <span className="font-semibold">5</span> merchant accounts</p>
+              <p>Additional merchants: <span className="font-semibold">$49/mo</span> each</p>
             </div>
           </div>
-        </section>
+
+          {/* Growth */}
+          <div className="bg-base-100/40 rounded-lg p-3 border border-base-300/60">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-semibold">Growth</p>
+              <p className="font-semibold">$699/mo</p>
+            </div>
+            <p className="text-xs opacity-80 mt-1">
+              Better visibility: SLA dashboards, address validation, richer analytics.
+            </p>
+            <div className="mt-2 text-xs opacity-80">
+              <p>Includes <span className="font-semibold">15</span> merchant accounts</p>
+              <p>Additional merchants: <span className="font-semibold">$39/mo</span> each</p>
+              <p className="mt-1">
+                Early partner pricing: <span className="font-semibold">$300/mo</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Pro */}
+          <div className="bg-base-100/40 rounded-lg p-3 border border-base-300/60">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-semibold">Pro</p>
+              <p className="font-semibold">$1,499/mo</p>
+            </div>
+            <p className="text-xs opacity-80 mt-1">
+              Multi-warehouse + premium modules (forecasting, deeper analytics).
+            </p>
+            <div className="mt-2 text-xs opacity-80">
+              <p>Includes <span className="font-semibold">40</span> merchant accounts</p>
+              <p>Additional merchants: <span className="font-semibold">$29/mo</span> each</p>
+              <p className="mt-1">
+                Early partner pricing: <span className="font-semibold">$1,100/mo</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 text-center space-y-1">
+          <p className="text-xs opacity-60">
+            Merchant accounts are billed per connected Shopify store. Extra merchants
+            and premium modules are billed as one consolidated monthly charge.
+          </p>
+          <p className="text-xs opacity-60">
+            For 3PLs that require a fully standalone Shopify app under their own name,
+            custom white-label deployments are available.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 
         {/* WHO THIS IS / ISN'T FOR */}
-        <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
-          <div className="text-center space-y-1 pb-2">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              Is OrderShifter Right for Your 3PL?
-            </h2>
-          </div>
+       <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300 space-y-4">
+  <div className="text-center space-y-1 pb-2">
+    <h2 className="text-2xl md:text-3xl font-bold">
+      Is OrderShifter Right for Your 3PL?
+    </h2>
+  </div>
 
-          <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto text-sm">
-            <div className="bg-base-200 rounded-xl p-4 border border-success/40">
-              <h3 className="text-base font-semibold mb-2">Perfect Fit If You&apos;re a 3PL That:</h3>
-              <ul className="list-disc list-inside opacity-80 space-y-1">
-                <li>Works with Shopify or plans to target more Shopify brands.</li>
-                <li>Wants to look like a tech-enabled partner, not a commodity warehouse.</li>
-                <li>Is currently dealing with CSV exports, manual edits, and fragile flows.</li>
-                <li>Wants merchants to self-onboard quickly without IT involvement.</li>
-                <li>Is ready to reduce operational noise and focus on growth and SLAs.</li>
-              </ul>
-            </div>
+  <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto text-sm items-stretch">
+    {/* YES / Perfect Fit */}
+    <div className="bg-base-200 rounded-xl p-5 border border-success/40 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-success/10 text-success animate-popup">
+          <CheckCircle className="w-5 h-5" />
+        </div>
+        <h3 className="text-base font-semibold">
+          Perfect Fit If You&apos;re a 3PL That:
+        </h3>
+      </div>
 
-            <div className="bg-base-200 rounded-xl p-4 border border-base-300">
-              <h3 className="text-base font-semibold mb-2">Not a Fit If You:</h3>
-              <ul className="list-disc list-inside opacity-80 space-y-1">
-                <li>Don&apos;t work with Shopify merchants and don&apos;t plan to.</li>
-                <li>Prefer one-off custom integrations for each client.</li>
-                <li>Are comfortable managing everything with spreadsheets and ad-hoc exports.</li>
-                <li>Don&apos;t want merchants to have any portal or visibility.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
+      <ul className="list-disc list-inside opacity-80 space-y-1">
+        <li>Works with Shopify or plans to target more Shopify brands.</li>
+        <li>Wants to look like a tech-enabled partner, not a commodity warehouse.</li>
+        <li>Is currently dealing with CSV exports, manual edits, and fragile flows.</li>
+        <li>Wants merchants to self-onboard quickly without IT involvement.</li>
+        <li>Is ready to reduce operational noise and focus on growth and SLAs.</li>
+      </ul>
+    </div>
+
+    {/* NO / Not a Fit */}
+    <div className="bg-base-200 rounded-xl p-5 border border-error/40 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-full bg-error/10 text-error animate-popup">
+          <XCircle className="w-5 h-5" />
+        </div>
+        <h3 className="text-base font-semibold">Not a Fit If You:</h3>
+      </div>
+
+      <ul className="list-disc list-inside opacity-80 space-y-1">
+        <li>Don&apos;t work with Shopify merchants and don&apos;t plan to.</li>
+        <li>Prefer one-off custom integrations for each client.</li>
+        <li>Are comfortable managing everything with spreadsheets and ad-hoc exports.</li>
+        <li>Don&apos;t want merchants to have any portal or visibility.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 
         {/* FAQ */}
         <section
@@ -901,13 +969,11 @@ export default function HomePage() {
             <div className="collapse collapse-arrow bg-base-200">
               <input type="checkbox" />
               <div className="collapse-title font-medium">
-                Do merchants see your brand or ours?
+                How does branding work for merchants?
               </div>
               <div className="collapse-content opacity-80">
                 <p>
-                  They see your brand. The Shopify app, the invite link, and the portal
-                  are all white-labeled with your logo and colors. OrderShifter stays
-                  behind the scenes.
+                  Merchants install OrderShifter once, but their day-to-day experience is centered around your 3PL - your routing rules, your warehouses, and your fulfillment workflows. OrderShifter simply provides the automation layer that makes everything work reliably.
                 </p>
               </div>
             </div>
