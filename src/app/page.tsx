@@ -52,7 +52,8 @@ export default function HomePage() {
     {/* CTA */}
     <div className="flex items-center gap-2">
       <Link href="/login" className="btn btn-ghost btn-sm">Login</Link>
-      <Link href="/signup" className="btn btn-gradient btn-sm">Get Started</Link>
+      <Link href="/signup" className="btn btn-gradient btn-sm"><span className="hidden sm:inline">Book a 20-minute walkthrough</span>
+    <span className="sm:hidden">Book walkthrough</span></Link>
     </div>
 
   </div>
@@ -82,7 +83,8 @@ export default function HomePage() {
 
           <div className="flex justify-center gap-4 pt-2">
             <Link href="/signup" className="btn btn-gradient btn-lg">
-              Get Started
+             <span className="hidden sm:inline">Book a 20-minute walkthrough</span>
+    <span className="sm:hidden">Book walkthrough</span>
             </Link>
             <Link href="/demo" className="btn btn-outline btn-lg">
               Watch Live Demo
@@ -763,7 +765,7 @@ export default function HomePage() {
         </p>
 
         <Link href="/contact" className="btn btn-gradient btn-sm mt-3">
-          Request Early Partner Spot
+          Book a 20-minute walkthrough
         </Link>
       </div>
     </div>
@@ -1005,7 +1007,8 @@ export default function HomePage() {
           </p>
           <div className="flex justify-center gap-3 pt-4">
             <Link href="/contact" className="btn btn-gradient btn-md">
-              Get Started
+              <span className="hidden sm:inline">Book a 20-minute walkthrough</span>
+    <span className="sm:hidden">Book walkthrough</span>
             </Link>
             <Link href="/demo" className="btn btn-outline btn-md">
               Watch Live Demo
