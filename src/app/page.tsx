@@ -226,7 +226,7 @@ export default function HomePage() {
     </p>
   </div>
 
-  <div className="grid md:grid-cols-2 gap-5 pt-6 px-20">
+  <div className="grid md:grid-cols-2 gap-5 pt-6 md:px-20">
   {/* BEFORE IMAGE */}
   <div className="relative w-full aspect-2/3 bg-base-200 rounded-xl overflow-hidden">
     <Image
