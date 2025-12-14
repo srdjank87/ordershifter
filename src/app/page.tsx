@@ -66,6 +66,15 @@ export default function HomePage() {
           <p className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-base-100 border border-base-300">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
             Built for 3PLs that work with Shopify brands
+            <span className="inline-flex items-center gap-2">
+  <Image
+    src="shopify.svg"
+    alt="Shopify"
+    width={16}
+    height={16}
+    className="opacity-80"
+  />
+</span>
           </p>
 
           <h1 className="text-4xl md:text-5xl font-bold leading-tight">
