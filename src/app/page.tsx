@@ -226,11 +226,11 @@ export default function HomePage() {
     </p>
   </div>
 
-  <div className="grid md:grid-cols-2 gap-6">
+  <div className="grid md:grid-cols-2 gap-5 pt-6 px-20">
   {/* BEFORE IMAGE */}
-  <div className="relative w-full aspect-2/3 bg-base-200 rounded-xl shadow-md overflow-hidden">
+  <div className="relative w-full aspect-2/3 bg-base-200 rounded-xl overflow-hidden">
     <Image
-      src="/before.png"
+      src="/before2.png"
       alt="Before OrderShifter"
       fill
       className="object-contain"
@@ -240,9 +240,9 @@ export default function HomePage() {
   </div>
 
   {/* AFTER IMAGE */}
-  <div className="relative w-full aspect-2/3 bg-base-200 rounded-xl shadow-md overflow-hidden">
+  <div className="relative w-full aspect-2/3 bg-base-200 rounded-xl overflow-hidden">
     <Image
-      src="/after.png"
+      src="/after2.png"
       alt="After OrderShifter"
       fill
       className="object-contain"
