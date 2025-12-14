@@ -36,7 +36,7 @@ export default function HomePage() {
       />
       <span className="font-bold text-lg leading-none">
         <span className="text-base-content">Order</span>
-        <span className="text-primary">Shifter</span>
+        <span className="text-[#634ce0]">Shifter</span>
       </span>
     </Link>
 
