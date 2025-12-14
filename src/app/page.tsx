@@ -28,7 +28,7 @@ export default function HomePage() {
     {/* LOGO */}
     <Link href="/" className="flex items-center gap-1">
       <Image
-        src="icon.svg"
+        src="/icon.svg"
         alt="OrderShifter logo"
         width={32}
         height={32}
@@ -68,12 +68,12 @@ export default function HomePage() {
             Built for 3PLs that work with Shopify brands
             <span className="inline-flex items-center gap-2">
   <Image
-    src="shopify.svg"
-    alt="Shopify"
-    width={16}
-    height={16}
-    className="opacity-80"
-  />
+        src="/shopify-icon.svg"
+        alt="Shopify icon"
+        width={16}
+        height={16}
+        priority
+      />
 </span>
           </p>
 
@@ -398,7 +398,15 @@ export default function HomePage() {
                 2
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Invite Your Shopify Merchants</h3>
+                <h3 className="text-lg font-semibold">Invite Your Shopify Merchants<span className="inline-flex items-center gap-2 pl-2">
+  <Image
+        src="/shopify-icon.svg"
+        alt="Shopify icon"
+        width={20}
+        height={20}
+        priority
+      />
+</span></h3>
                 <p className="opacity-80">
                   Merchants receive your invite link, install the app once, then connect specifically to your fulfillment operation - choosing which regions, SKUs, and workflows you handle, all in a few guided steps.
                 </p>
