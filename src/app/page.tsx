@@ -92,7 +92,7 @@ export default function HomePage() {
       {/* GLOBAL WRAPPER */}
       <div className="max-w-6xl mx-auto px-4 pb-16 space-y-8">
         {/* HERO */}
-        <section className="text-center pt-10 pb-6 space-y-4 animate-appearFromRight">
+        <section className="text-center pt-10 pb-2 space-y-4 animate-appearFromRight">
           <div className="inline-flex flex-wrap items-center gap-2 text-xs px-3 py-1 rounded-full bg-base-100 border border-base-300 max-w-full">
             {/* Pulse dot */}
             <span className="w-2 h-2 rounded-full bg-success animate-pulse shrink-0" />
@@ -228,11 +228,9 @@ export default function HomePage() {
               Ops teams don&apos;t lose time because the warehouse is slow - they lose time because
               Shopify is constantly changing after the order is placed. Once bad data hits your WMS,
               everything gets expensive.
-              <br />
-              <br />
-              <span className="font-semibold opacity-90">OrderShifter exists to stop that.</span>
             </p>
-            <p className="text-sm opacity-70 max-w-2xl mx-auto text-center mt-2"><i>Built specifically for the messy 5% of orders that create 80% of operational noise.</i></p>
+            <p className="text-sm max-w-2xl mx-auto font-semibold mt-3">OrderShifter exists to stop that.</p>
+            <p className="text-sm opacity-70 max-w-2xl mx-auto text-center mt-3"><i>Built specifically for the messy 5% of orders that create 80% of operational noise.</i></p>
           </div>
 
           {/* BEFORE / AFTER (PILLS WITH ARROWS) */}
