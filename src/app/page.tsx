@@ -242,7 +242,7 @@ export default function HomePage() {
     <p className="text-center text-base sm:text-lg font-semibold mb-4">Before OrderShifter</p>
 
   <div className="space-y-2">
-    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2">
+    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
       Ops checks Shopify, inbox, and spreadsheets all day
     </div>
 
@@ -250,7 +250,7 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2">
+    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
       Every edit or cancel triggers re-downloads and rework
     </div>
 
@@ -258,7 +258,7 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2">
+    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
       Address fixes happen at the last minute in the WMS
     </div>
 
@@ -266,7 +266,7 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2">
+    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
       Ops chases merchants for missing SKU details
     </div>
 
@@ -274,7 +274,7 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2">
+    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
       Last-minute fixes happen directly in the WMS
     </div>
 
@@ -282,12 +282,12 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2">
+    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
       Peak volume turns small issues into fires
     </div>
   </div>
 
-  <p className="text-xs opacity-70 mt-3 flex items-center gap-2">
+  <p className="text-xs opacity-70 mt-3 flex gap-2 justify-center">
     <XCircle className="w-4 h-4 text-error" />
     Result: constant noise, rushed fixes, avoidable mistakes.
   </p>
@@ -300,7 +300,7 @@ export default function HomePage() {
 
 
   <div className="space-y-2">
-    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2">
+    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
       Orders pause briefly while Shopify finishes changing
     </div>
 
@@ -308,7 +308,7 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2">
+    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
       Only clean, validated orders reach the WMS
     </div>
 
@@ -316,7 +316,7 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2">
+    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
       Exceptions surface in one place with clear fixes
     </div>
 
@@ -324,7 +324,7 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2">
+    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
       SKU readiness enforced before orders flow
     </div>
 
@@ -332,20 +332,19 @@ export default function HomePage() {
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2">
-      Clean, validated orders export on your schedule.
+    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
+      Clean, validated orders export on your schedule
     </div>
 
     <div className="flex justify-center">
       <ArrowDown className="w-4 h-4 opacity-50" />
     </div>
 
-    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2">
+    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
       Ops teams fix issues once - not per order
     </div>
   </div>
-
-  <p className="text-xs opacity-70 mt-3 flex items-center gap-2">
+  <p className="text-xs opacity-70 mt-3 flex items-center gap-2 justify-center">
     <CheckCircle2 className="w-4 h-4 text-success" />
     Result: calmer ops, cleaner data, fewer escalations.
   </p>
