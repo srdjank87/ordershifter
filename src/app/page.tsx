@@ -236,12 +236,12 @@ export default function HomePage() {
           {/* BEFORE / AFTER (PILLS WITH ARROWS) */}
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-4 text-sm">
             {/* BEFORE */}
-<div className="bg-base-200 rounded-xl p-4 border border-error/30">
+<div className="rounded-xl p-4 border-2 border-error/30">
     <p className="text-center text-base sm:text-lg font-semibold mb-4">Before OrderShifter</p>
 
   <div className="space-y-2">
     <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
-      Ops checks Shopify, inbox, and spreadsheets all day
+      Ops constantly checks Shopify, inbox, and spreadsheets
     </div>
 
     <div className="flex justify-center">
@@ -249,7 +249,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
-      Every edit or cancel triggers re-downloads and rework
+      Every edit, cancel, or tag change triggers re-downloads and rework
     </div>
 
     <div className="flex justify-center">
@@ -257,7 +257,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
-      Address fixes happen at the last minute in the WMS
+      Address fixes and SKU issues surface too late - inside the WMS
     </div>
 
     <div className="flex justify-center">
@@ -265,7 +265,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
-      Ops chases merchants for missing SKU details
+      Virtual bundles and missing SKU data break fulfillment flows
     </div>
 
     <div className="flex justify-center">
@@ -273,15 +273,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
-      Last-minute fixes happen directly in the WMS
-    </div>
-
-    <div className="flex justify-center">
-      <ArrowDown className="w-4 h-4 opacity-50" />
-    </div>
-
-    <div className="rounded-full bg-error/10 border border-error/20 px-4 py-2 text-center">
-      Peak volume turns small issues into fires
+      Peak volume turns small changes into operational fires
     </div>
   </div>
 
@@ -292,7 +284,7 @@ export default function HomePage() {
 </div>
 
 {/* AFTER */}
-<div className="bg-base-200 rounded-xl p-4 border border-success/30">
+<div className="rounded-xl p-4 border-2 border-success/30">
 
     <p className="text-center text-base sm:text-lg font-semibold mb-4">With OrderShifter</p>
 
@@ -307,7 +299,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
-      Only clean, validated orders reach the WMS
+      Only clean, validated orders ever reach the WMS
     </div>
 
     <div className="flex justify-center">
@@ -315,7 +307,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
-      Exceptions surface in one place with clear fixes
+      Exceptions surface early - in one place, with clear fixes
     </div>
 
     <div className="flex justify-center">
@@ -323,15 +315,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
-      SKU readiness enforced before orders flow
-    </div>
-
-    <div className="flex justify-center">
-      <ArrowDown className="w-4 h-4 opacity-50" />
-    </div>
-
-    <div className="rounded-full bg-success/10 border border-success/20 px-4 py-2 text-center">
-      Clean, validated orders export on your schedule
+      SKU readiness (including bundles) is enforced before export
     </div>
 
     <div className="flex justify-center">
@@ -386,11 +370,11 @@ export default function HomePage() {
                 <div className="p-2 rounded-full bg-secondary/10 text-secondary">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <h3 className="font-semibold">2) Exception Gating</h3>
+                <h3 className="font-semibold">2) Exception Gate</h3>
               </div>
               <p className="opacity-80">
-                Validate shipping fields, SKUs, and rules. If something&apos;s wrong, the order is flagged -
-                not exported.
+                Orders are checked for missing data, invalid SKUs, address issues, and rule violations<span className="font-semibold"> before they ever reach your WMS</span>.
+                Clean orders flow through automatically. Problem orders pause with a clear reason and fix.
               </p>
             </div>
 
@@ -470,7 +454,7 @@ export default function HomePage() {
                 a workflow they rely on. That&apos;s a real retention edge - without locking anyone in unfairly.
               </p>
               <p className="text-xs opacity-70 mt-2">
-                You look like a modern partner - not a warehouse they have to babysit.
+                You look like a modern partner - not just a warehouse.
               </p>
             </div>
 
@@ -502,7 +486,7 @@ export default function HomePage() {
                 your standards - with OrderShifter running quietly behind the scenes.
               </p>
               <p className="text-xs opacity-70 mt-2">
-                Stronger brand + better experience = fewer &quot;we&apos;re shopping for a new 3PL&quot; conversations.
+                Stronger brand + better experience = fewer &quot;sorry, we&apos;re shopping for a new 3PL&quot; conversations.
               </p>
             </div>
           </div>
@@ -589,23 +573,8 @@ export default function HomePage() {
                 <p className="font-semibold">Your operating rules</p>
               </div>
               <p className="opacity-80">
-                Delay window length, routing defaults, and what should be blocked by exception gating.
+                Delay window length, routing defaults, and what should be blocked by the exception gate.
               </p>
-            </div>
-          </div>
-
-          <div className="max-w-5xl mx-auto bg-base-200 rounded-xl p-4 border border-base-300 text-sm">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-full bg-success/10 text-success mt-0.5">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <p className="font-semibold">You&apos;re not &quot;handing over everything&quot;</p>
-                <p className="opacity-80">
-                  We start with the highest-impact protections first (delay window + exception gating),
-                  then add routing logic and modules only when they solve a pain you actually feel.
-                </p>
-              </div>
             </div>
           </div>
         </section>
@@ -680,7 +649,7 @@ export default function HomePage() {
 
          <section className="py-6 px-4 bg-base-100 rounded-xl shadow-sm border border-base-300">
   <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-4 text-sm">
-    <div className="bg-base-200 rounded-xl p-4 border border-success/30">
+    <div className="bg-base-200 rounded-xl p-4 border-2 border-success/60">
       <h3 className="text-base font-semibold mb-2 flex items-center gap-2">
         <CheckCircle2 className="w-5 h-5 text-success" />
         OrderShifter is a great fit if you:
@@ -694,7 +663,7 @@ export default function HomePage() {
       </ul>
     </div>
 
-    <div className="bg-base-200 rounded-xl p-4 border border-error/30">
+    <div className="bg-base-200 rounded-xl p-4 border-2 border-error/60">
       <h3 className="text-base font-semibold mb-2 flex items-center gap-2">
         <XCircle className="w-5 h-5 text-error" />
         OrderShifter is not a fit if you:
@@ -746,7 +715,7 @@ export default function HomePage() {
                   <p>✓ 5-day go-live implementation</p>
                   <p>✓ Branded portal + merchant onboarding flow</p>
                   <p>✓ WMS mapping &amp; routing defaults</p>
-                  <p>✓ Smart delay + exception gating</p>
+                  <p>✓ Smart delay + exception gate</p>
                   <p>✓ 12 months of Essential included</p>
                   <p>✓ White-glove ops support</p>
                 </div>
@@ -786,7 +755,7 @@ export default function HomePage() {
                 <div className="bg-base-100 border border-base-300 rounded-xl p-3">
                   <p className="font-semibold">Essential - $399/mo</p>
                   <p className="opacity-80 mt-1">
-                    Core sync layer + branded portal, delay window, exception gating, routing rules,
+                    Core sync layer + branded portal, delay window, exception gate, routing rules,
                     and tracking sync.
                   </p>
                   <p className="text-xs opacity-70 mt-2">
@@ -876,22 +845,24 @@ export default function HomePage() {
       </ul>
 
       <div className="bg-base-100 border border-base-300 rounded-xl p-3 mt-2 w-full">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-full bg-primary/10 text-primary mt-0.5">
-            <FileSpreadsheet className="w-5 h-5" />
-          </div>
-          <div className="space-y-1">
-            <p className="font-semibold">SKU Compliance (why ops teams buy it)</p>
-            <p className="opacity-80">
-              Validates required SKU fields (dimensions, materials, hazmat, packaging, etc.),
-              prevents non-compliant SKUs from flowing, and exports 3PL-ready CSVs on demand.
-            </p>
-            <p className="text-xs opacity-70">
-              $199/mo on Essential &amp; Growth • Included in Pro
-            </p>
-          </div>
-        </div>
-      </div>
+  <div className="flex items-start gap-3">
+    <div className="p-2 rounded-full bg-primary/10 text-primary mt-0.5">
+      <FileSpreadsheet className="w-5 h-5" />
+    </div>
+    <div className="space-y-1">
+      <p className="font-semibold">SKU Compliance (why ops teams actually buy it)</p>
+      <p className="opacity-80">
+        Enforces required SKU data <span className="font-semibold">(dimensions, weights, materials, hazmat, bundles) </span>
+         before orders flow. Prevents incomplete or non-compliant SKUs from creating downstream
+        rework - and generates 3PL-ready CSVs when merchants need them.
+      </p>
+      <p className="text-xs opacity-70">
+        $199/mo on Essential &amp; Growth • Included in Pro
+      </p>
+    </div>
+  </div>
+</div>
+
 
       <p className="text-xs opacity-70 pt-1">
         Best practice: add modules only when your ops team can feel the pain today.
@@ -1028,7 +999,7 @@ export default function HomePage() {
                 <p className="font-semibold">We map your exact flow</p>
               </div>
               <ul className="list-disc list-inside opacity-80 space-y-1">
-                <li>Shopify volume + order types (subscriptions, bundles, etc.)</li>
+                <li>Shopify volume + order types (regular, subscriptions, bundles, etc.)</li>
                 <li>Your WMS input format (CSV/SFTP/API) and current pain points</li>
                 <li>Where edits/cancels/errors are causing re-work today</li>
               </ul>
@@ -1117,6 +1088,18 @@ export default function HomePage() {
             <div className="collapse collapse-arrow bg-base-200">
               <input type="checkbox" />
               <div className="collapse-title font-medium">
+                How does OrderShifter handle bundles and subscriptions?
+              </div>
+              <div className="collapse-content opacity-80">
+                <p>
+                  OrderShifter detects virtual bundles and subscription orders, validates them against your SKU rules, and expands them into clean, physical fulfillment instructions before they ever reach your WMS. If something doesn’t match, the order is held safely for review instead of breaking downstream.
+                </p>
+              </div>
+            </div>
+
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="checkbox" />
+              <div className="collapse-title font-medium">
                 How does billing work?
               </div>
               <div className="collapse-content opacity-80">
@@ -1140,18 +1123,6 @@ export default function HomePage() {
   </div>
 </div>
 
-<div className="collapse collapse-arrow bg-base-200">
-  <input type="checkbox" />
-  <div className="collapse-title font-medium">
-    Is our data secure?
-  </div>
-  <div className="collapse-content opacity-80">
-    <p>
-      Yes. OrderShifter only accesses the minimum Shopify data required to
-      process fulfillment and does not replace your WMS or billing systems.
-    </p>
-  </div>
-</div>
 
 <div className="collapse collapse-arrow bg-base-200">
   <input type="checkbox" />
@@ -1163,6 +1134,19 @@ export default function HomePage() {
       It&apos;s intentionally lightweight. Merchants upload once, OrderShifter
       validates continuously, and ops teams stop chasing missing dimensions
       forever.
+    </p>
+  </div>
+</div>
+
+<div className="collapse collapse-arrow bg-base-200">
+  <input type="checkbox" />
+  <div className="collapse-title font-medium">
+    Is our data secure?
+  </div>
+  <div className="collapse-content opacity-80">
+    <p>
+      Yes. OrderShifter only accesses the minimum Shopify data required to
+      process fulfillment and does not replace your WMS or billing systems.
     </p>
   </div>
 </div>
