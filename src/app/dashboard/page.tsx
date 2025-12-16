@@ -1,6 +1,13 @@
-// app/dashboard/page.tsx
+// src/app/dashboard/page.tsx
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import {
+  AlertTriangle,
+  Clock,
+  ShieldCheck,
+  ArrowRight,
+  RefreshCcw,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -10,14 +17,33 @@ export default async function DashboardPage() {
     include: { settings: true },
   });
 
+  if (!tenant) {
+    return (
+      <main className="bg-base-100">
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <div className="alert alert-warning">
+            <AlertTriangle className="w-5 h-5" />
+            <div>
+              <div className="font-semibold">No 3PL account found</div>
+              <div className="text-sm opacity-80">
+                We couldn’t find the default 3PL record yet. Run your seed, or
+                create your first 3PL account in Prisma Studio.
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const counts = await prisma.shopifyOrder.groupBy({
     by: ["state"],
-    where: { tenantId: tenant?.id ?? "" },
+    where: { tenantId: tenant.id },
     _count: { _all: true },
   });
 
   const latest = await prisma.shopifyOrder.findMany({
-    where: { tenantId: tenant?.id ?? "" },
+    where: { tenantId: tenant.id },
     orderBy: { createdAt: "desc" },
     take: 20,
     include: { merchant: true },
@@ -25,33 +51,80 @@ export default async function DashboardPage() {
 
   const countMap = new Map(counts.map((c) => [c.state, c._count._all]));
 
+  const delayHours = tenant.settings?.delayHours ?? 6;
+
   return (
-    <main className="min-h-screen bg-base-100">
-      <div className="max-w-6xl mx-auto px-4 py-10 space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Ops Dashboard</h1>
+    <main className="bg-base-100">
+      <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-bold">Ops Overview</h1>
+
             <p className="text-sm opacity-70">
-              Tenant: <span className="font-semibold">{tenant?.name ?? "Unknown"}</span>{" "}
-              (<span className="font-mono">{tenant?.slug ?? "n/a"}</span>) · Delay:{" "}
-              <span className="font-semibold">{tenant?.settings?.delayHours ?? 6}h</span>
+              <span className="font-semibold">3PL:</span>{" "}
+              <span className="font-semibold">{tenant.name}</span>
+              <span className="px-2 opacity-60">•</span>
+              <span className="font-semibold">Delay window:</span>{" "}
+              <span className="font-semibold">{delayHours}h</span>
+              <span className="px-2 opacity-60">•</span>
+              <span className="opacity-80">
+                Built for the messy 5% of orders that cause 80% of ops noise.
+              </span>
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link className="btn btn-outline btn-sm" href="/orders">
-              View Orders
+
+          <div className="flex items-center gap-2">
+            <Link className="btn btn-outline btn-sm" href="/dashboard/orders">
+              View Orders <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link className="btn btn-ghost btn-sm" href="/dashboard/settings">
+              Settings
             </Link>
           </div>
         </div>
 
+        {/* Quick signal tiles */}
         <section className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <StatCard title="Pending Delay" value={countMap.get("PENDING_DELAY") ?? 0} />
-          <StatCard title="Ready to Route" value={countMap.get("READY_TO_ROUTE") ?? 0} />
-          <StatCard title="Routed" value={countMap.get("ROUTED") ?? 0} />
-          <StatCard title="Export Queued" value={countMap.get("EXPORT_QUEUED") ?? 0} />
-          <StatCard title="Errors" value={countMap.get("ERROR") ?? 0} />
+          <StatCard
+            title="In Delay Window"
+            value={countMap.get("PENDING_DELAY") ?? 0}
+            icon={<Clock className="w-4 h-4" />}
+          />
+          <StatCard
+            title="Ready to Route"
+            value={countMap.get("READY_TO_ROUTE") ?? 0}
+            icon={<ShieldCheck className="w-4 h-4" />}
+          />
+          <StatCard
+            title="Routed"
+            value={countMap.get("ROUTED") ?? 0}
+            icon={<ArrowRight className="w-4 h-4" />}
+          />
+          <StatCard
+            title="Export Queued"
+            value={countMap.get("EXPORT_QUEUED") ?? 0}
+            icon={<RefreshCcw className="w-4 h-4" />}
+          />
+          <StatCard
+            title="Needs Attention"
+            value={countMap.get("ERROR") ?? 0}
+            icon={<AlertTriangle className="w-4 h-4" />}
+            danger
+          />
         </section>
 
+        {/* “What’s happening” helper bar */}
+        <div className="bg-base-200 border border-base-300 rounded-xl p-4 text-sm">
+          <div className="font-semibold mb-1">What this dashboard is for</div>
+          <p className="opacity-80">
+            Orders should pause briefly, get validated by your rules, then export
+            cleanly to your WMS. If something’s wrong, it should show up once —
+            with a clear fix — instead of becoming a chain of rework.
+          </p>
+        </div>
+
+        {/* Latest Orders */}
         <section className="bg-base-100 border border-base-300 rounded-xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-base-300 flex items-center justify-between">
             <h2 className="font-semibold">Latest Orders</h2>
@@ -63,8 +136,8 @@ export default async function DashboardPage() {
               <thead>
                 <tr>
                   <th>Shop</th>
-                  <th>Order</th>
-                  <th>State</th>
+                  <th>Order ID</th>
+                  <th>Status</th>
                   <th>Ready At</th>
                   <th>Last Error</th>
                 </tr>
@@ -73,7 +146,8 @@ export default async function DashboardPage() {
                 {latest.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="opacity-70">
-                      No orders yet. Once Shopify webhooks are wired, you’ll see them here.
+                      No orders yet. Once Shopify webhooks are firing, you’ll see
+                      them here.
                     </td>
                   </tr>
                 ) : (
@@ -98,20 +172,39 @@ export default async function DashboardPage() {
           </div>
         </section>
 
+        {/* Next steps note */}
         <div className="text-xs opacity-60">
-          Next: we’ll add Shopify install + webhook ingestion so this dashboard populates automatically.
+          Next: wire Shopify install + webhooks so this populates automatically
+          per connected merchant store.
         </div>
       </div>
     </main>
   );
 }
 
-function StatCard({ title, value }: { title: string; value: number }) {
+function StatCard({
+  title,
+  value,
+  icon,
+  danger,
+}: {
+  title: string;
+  value: number;
+  icon?: React.ReactNode;
+  danger?: boolean;
+}) {
   return (
     <div className="card bg-base-200 shadow-sm">
       <div className="card-body p-4">
-        <div className="text-xs opacity-70">{title}</div>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-xs opacity-70">{title}</div>
+          {icon && (
+            <div className={danger ? "text-error" : "opacity-70"}>{icon}</div>
+          )}
+        </div>
+        <div className={["text-2xl font-bold", danger ? "text-error" : ""].join(" ")}>
+          {value}
+        </div>
       </div>
     </div>
   );
