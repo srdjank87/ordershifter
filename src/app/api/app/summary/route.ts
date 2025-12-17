@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     );
   }
 
-  // Merchant lookup (shopDomain is unique in your schema)
+  // Merchant lookup (tenant-scoped shopDomain)
   const merchant = await prisma.merchantAccount.findFirst({
     where: { tenantId, shopDomain: shop },
     select: { id: true, status: true, installedAt: true, updatedAt: true },
@@ -29,26 +29,26 @@ export async function GET(req: Request) {
   const where = { tenantId, merchantId: merchant.id };
 
   const [
-    pendingDelay,
-    readyToRoute,
-    routed,
-    exportQueued,
-    exported,
+    pendingCount,
+    heldCount,
+    readyCount,
+    exportedCount,
     errorCount,
     lastOrder,
     lastExport,
   ] = await Promise.all([
-    prisma.shopifyOrder.count({ where: { ...where, state: "PENDING_DELAY" } }),
-    prisma.shopifyOrder.count({ where: { ...where, state: "READY_TO_ROUTE" } }),
-    prisma.shopifyOrder.count({ where: { ...where, state: "ROUTED" } }),
-    prisma.shopifyOrder.count({ where: { ...where, state: "EXPORT_QUEUED" } }),
+    prisma.shopifyOrder.count({ where: { ...where, state: "PENDING" } }),
+    prisma.shopifyOrder.count({ where: { ...where, state: "HELD" } }),
+    prisma.shopifyOrder.count({ where: { ...where, state: "READY" } }),
     prisma.shopifyOrder.count({ where: { ...where, state: "EXPORTED" } }),
     prisma.shopifyOrder.count({ where: { ...where, state: "ERROR" } }),
+
     prisma.shopifyOrder.findFirst({
       where,
       orderBy: { updatedAt: "desc" },
       select: { updatedAt: true },
     }),
+
     prisma.exportLog.findFirst({
       where,
       orderBy: { createdAt: "desc" },
@@ -66,11 +66,10 @@ export async function GET(req: Request) {
       installedAt: merchant.installedAt,
     },
     counts: {
-      pendingDelay,
-      readyToRoute,
-      routed,
-      exportQueued,
-      exported,
+      pending: pendingCount,
+      held: heldCount,
+      ready: readyCount,
+      exported: exportedCount,
       error: errorCount,
     },
     last: {

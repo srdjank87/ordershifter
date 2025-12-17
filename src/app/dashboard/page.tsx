@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   ArrowRight,
   RefreshCcw,
+  PauseCircle,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -36,11 +37,14 @@ export default async function DashboardPage() {
     );
   }
 
+  // Counts by state (new enum)
   const counts = await prisma.shopifyOrder.groupBy({
     by: ["state"],
     where: { tenantId: tenant.id },
     _count: { _all: true },
   });
+
+  const countMap = new Map(counts.map((c) => [c.state, c._count._all]));
 
   const latest = await prisma.shopifyOrder.findMany({
     where: { tenantId: tenant.id },
@@ -48,8 +52,6 @@ export default async function DashboardPage() {
     take: 20,
     include: { merchant: true },
   });
-
-  const countMap = new Map(counts.map((c) => [c.state, c._count._all]));
 
   const delayHours = tenant.settings?.delayHours ?? 6;
 
@@ -87,23 +89,23 @@ export default async function DashboardPage() {
         {/* Quick signal tiles */}
         <section className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <StatCard
-            title="In Delay Window"
-            value={countMap.get("PENDING_DELAY") ?? 0}
+            title="Pending"
+            value={countMap.get("PENDING") ?? 0}
             icon={<Clock className="w-4 h-4" />}
           />
           <StatCard
-            title="Ready to Route"
-            value={countMap.get("READY_TO_ROUTE") ?? 0}
+            title="Held"
+            value={countMap.get("HELD") ?? 0}
+            icon={<PauseCircle className="w-4 h-4" />}
+          />
+          <StatCard
+            title="Ready"
+            value={countMap.get("READY") ?? 0}
             icon={<ShieldCheck className="w-4 h-4" />}
           />
           <StatCard
-            title="Routed"
-            value={countMap.get("ROUTED") ?? 0}
-            icon={<ArrowRight className="w-4 h-4" />}
-          />
-          <StatCard
-            title="Export Queued"
-            value={countMap.get("EXPORT_QUEUED") ?? 0}
+            title="Exported"
+            value={countMap.get("EXPORTED") ?? 0}
             icon={<RefreshCcw className="w-4 h-4" />}
           />
           <StatCard
@@ -172,10 +174,8 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* Next steps note */}
         <div className="text-xs opacity-60">
-          Next: wire Shopify install + webhooks so this populates automatically
-          per connected merchant store.
+          Next: wire Shopify webhooks → order pipeline worker so PENDING → HELD/READY → EXPORTED becomes automatic.
         </div>
       </div>
     </main>

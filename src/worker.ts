@@ -1,20 +1,7 @@
 // src/worker.ts
-import { loadEnvConfig } from "@next/env";
+import "dotenv/config";
 
-loadEnvConfig(process.cwd()); // loads .env.local, .env, etc (same as Next)
+// Importing this file instantiates the BullMQ Worker and starts listening.
+import "@/lib/queue/worker";
 
-async function main() {
-  // Import AFTER env is loaded
-  const { startWorker } = await import("./lib/queue/worker");
-
-  if (!process.env.REDIS_URL) {
-    throw new Error("Missing REDIS_URL env var (check .env.local or your shell env)");
-  }
-
-  await startWorker();
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+console.log("✅ OrderShifter worker running (BullMQ)");
