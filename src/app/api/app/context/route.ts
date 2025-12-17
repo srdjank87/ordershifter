@@ -7,38 +7,39 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const shopFromQuery = url.searchParams.get("shop");
 
-    // Next.js (your version): cookies() is async
     const cookieStore = await cookies();
     const shopFromCookie = cookieStore.get("os_shop")?.value ?? null;
 
     const shop = shopFromQuery ?? shopFromCookie;
+
     if (!shop) {
-      return NextResponse.json({ ok: false, error: "Missing shop" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "Missing shop (no query param and no os_shop cookie)" },
+        { status: 400 }
+      );
     }
 
-    // Find merchant account by shop domain
     const merchant = await prisma.merchantAccount.findFirst({
       where: { shopDomain: shop },
       select: {
-        id: true,
         tenantId: true,
         shopDomain: true,
-        tenant: { select: { id: true, name: true } },
+        tenant: { select: { name: true } },
       },
     });
 
-    if (!merchant?.tenant) {
+    if (!merchant?.tenantId) {
       return NextResponse.json(
-        { ok: false, error: "Merchant not found for this shop" },
+        { ok: false, error: `Missing tenantId (merchant not found for shop: ${shop})` },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       ok: true,
-      tenantId: merchant.tenant.id,
-      tenantName: merchant.tenant.name,
       shop: merchant.shopDomain,
+      tenantId: merchant.tenantId,
+      tenantName: merchant.tenant?.name ?? "Portal",
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
