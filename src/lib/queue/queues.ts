@@ -1,8 +1,15 @@
 // src/lib/queue/queues.ts
+import { Queue } from "bullmq";
+import { connection } from "./connection";
+
 export const QUEUES = {
-  ORDERS: "orders",
-  WEBHOOKS: "webhooks",
-  EXPORTS: "exports",
+  ORDER_PIPELINE: "order-pipeline",
+  // add more later:
+  // WEBHOOKS: "webhooks",
+  // EXPORTS: "exports",
 } as const;
 
-export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
+// Export a real queue instance (what your route is trying to import)
+export const orderPipelineQueue = new Queue(QUEUES.ORDER_PIPELINE, {
+  connection,
+});
