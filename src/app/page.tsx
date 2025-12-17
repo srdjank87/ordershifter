@@ -1,6 +1,3 @@
-import { redirect } from "next/navigation";
-import type { Metadata } from "next";
-
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -29,24 +26,19 @@ import {
   XCircle,
 } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "OrderShifter",
-};
+// src/app/page.tsx
+import { redirect } from "next/navigation";
 
-interface HomePageProps {
-  searchParams?: {
-    embedded?: string;
-    shop?: string;
-    host?: string;
-  };
-}
+export default function Home({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
+  const embedded = searchParams?.embedded;
+  const shop = searchParams?.shop;
 
-export default function HomePage({ searchParams }: HomePageProps) {
-  /**
-   * Shopify embedded app detection
-   * Shopify always loads embedded apps with ?embedded=1
-   */
-  if (searchParams?.embedded === "1") {
+  // If Shopify is loading this in the embedded iframe, send them to the merchant app
+  if (embedded === "1" || (Array.isArray(embedded) ? embedded[0] === "1" : false) || shop) {
     redirect("/app");
   }
 
