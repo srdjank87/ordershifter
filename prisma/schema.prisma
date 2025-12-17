@@ -102,6 +102,7 @@ model MerchantAccount {
   exportLogs      ExportLog[]
 
   @@unique([tenantId, shopDomain])
+  @@unique([shopDomain])
 }
 
 model ShopifyOrder {
