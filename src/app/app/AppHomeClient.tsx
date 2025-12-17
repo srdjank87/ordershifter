@@ -68,6 +68,22 @@ type OrderRow = {
 
 type OrdersResp = { ok: true; items: OrderRow[] } | { ok: false; error: string };
 
+async function safeJson<T>(url: string): Promise<T | { ok: false; error: string }> {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    const text = await res.text();
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return { ok: false, error: `Non-JSON response (${res.status})` };
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Fetch failed";
+    return { ok: false, error: msg };
+  }
+}
+
+
 export default function AppHomeClient() {
   const sp = useSearchParams();
 
@@ -178,37 +194,27 @@ export default function AppHomeClient() {
 
   // ---- Once context is loaded, fetch dashboard data
   useEffect(() => {
-    if (!ctx?.shop) return;
+  if (!ctx?.shop) return;
 
-    const qs = new URLSearchParams({ shop: ctx.shop });
+  const qs = new URLSearchParams({ shop: ctx.shop });
 
-    const loadAll = async () => {
-      const [s, ex, exp, o] = await Promise.all([
-        fetch(`/api/app/stats?${qs.toString()}`, { cache: "no-store" }).then(
-          (r) => r.json() as Promise<StatsResp>
-        ),
-        fetch(`/api/app/exceptions?${qs.toString()}`, {
-          cache: "no-store",
-        }).then((r) => r.json() as Promise<ExceptionsResp>),
-        fetch(`/api/app/exports?${qs.toString()}`, { cache: "no-store" }).then(
-          (r) => r.json() as Promise<ExportsResp>
-        ),
-        fetch(`/api/app/orders?${qs.toString()}`, { cache: "no-store" }).then(
-          (r) => r.json() as Promise<OrdersResp>
-        ),
-      ]);
+  const loadAll = async () => {
+    const [s, ex, exp, o] = await Promise.all([
+      safeJson<StatsResp>(`/api/app/stats?${qs}`),
+      safeJson<ExceptionsResp>(`/api/app/exceptions?${qs}`),
+      safeJson<ExportsResp>(`/api/app/exports?${qs}`),
+      safeJson<OrdersResp>(`/api/app/orders?${qs}`),
+    ]);
 
-      setStats(s);
-      setExceptions(ex);
-      setExportsLog(exp);
-      setOrders(o);
-    };
+    setStats(s as StatsResp);
+    setExceptions(ex as ExceptionsResp);
+    setExportsLog(exp as ExportsResp);
+    setOrders(o as OrdersResp);
+  };
 
-    loadAll().catch((e: unknown) => {
-      // Don’t hard-fail the whole UI; show partial sections.
-      console.error("App dashboard fetch failed:", e);
-    });
-  }, [ctx?.shop]);
+  loadAll();
+}, [ctx?.shop]);
+
 
   // ---- UI states
   if (ctxError) {
