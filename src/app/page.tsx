@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -26,9 +29,31 @@ import {
   XCircle,
 } from "lucide-react";
 
-export default function HomePage() {
+export const metadata: Metadata = {
+  title: "OrderShifter",
+};
+
+interface HomePageProps {
+  searchParams?: {
+    embedded?: string;
+    shop?: string;
+    host?: string;
+  };
+}
+
+export default function HomePage({ searchParams }: HomePageProps) {
+  /**
+   * Shopify embedded app detection
+   * Shopify always loads embedded apps with ?embedded=1
+   */
+  if (searchParams?.embedded === "1") {
+    redirect("/app");
+  }
+
+  // 👇 If NOT embedded, render the marketing site
   return (
     <main className="bg-base-100 text-base-content">
+
       {/* HEADER */}
       <header className="border-b border-base-300 bg-base-100">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
