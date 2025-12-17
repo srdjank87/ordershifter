@@ -8,14 +8,13 @@ import { exchangeCodeForToken, registerWebhook } from "@/lib/shopify/client";
 type ShopifyCtx = {
   state: string;
   tenantSlug: string;
-  returnTo: string;
+  returnTo: string; // IMPORTANT: should include embedded context (host, embedded=1) if embedded install
   iat: number;
 };
 
-
 export async function GET(req: Request) {
-
   console.log("✅ CALLBACK HIT", { url: req.url });
+
   const url = new URL(req.url);
 
   const apiKey = process.env.SHOPIFY_API_KEY;
@@ -29,8 +28,6 @@ export async function GET(req: Request) {
     );
   }
 
-  
-
   const shop = url.searchParams.get("shop");
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -39,7 +36,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing shop/code/state" }, { status: 400 });
   }
 
-  // Validate Shopify HMAC on callback URL
+  // Validate Shopify callback HMAC
   if (!verifyShopifyCallbackHmac(url, apiSecret)) {
     return NextResponse.json({ error: "Invalid HMAC" }, { status: 401 });
   }
@@ -52,10 +49,14 @@ export async function GET(req: Request) {
     .find((c) => c.startsWith("os_shopify_ctx="));
 
   const raw = ctxCookie?.split("=").slice(1).join("=");
-  if (!raw) return NextResponse.json({ error: "Missing context cookie" }, { status: 400 });
+  if (!raw) {
+    return NextResponse.json({ error: "Missing context cookie" }, { status: 400 });
+  }
 
   const ctx = verifyPayload<ShopifyCtx>(decodeURIComponent(raw));
-  if (!ctx) return NextResponse.json({ error: "Invalid context cookie" }, { status: 400 });
+  if (!ctx) {
+    return NextResponse.json({ error: "Invalid context cookie" }, { status: 400 });
+  }
 
   if (ctx.state !== state) {
     return NextResponse.json({ error: "State mismatch" }, { status: 401 });
@@ -66,7 +67,9 @@ export async function GET(req: Request) {
     include: { settings: true },
   });
 
-  if (!tenant) return NextResponse.json({ error: "Unknown 3PL account" }, { status: 404 });
+  if (!tenant) {
+    return NextResponse.json({ error: "Unknown 3PL account" }, { status: 404 });
+  }
 
   // Exchange code for access token
   const token = await exchangeCodeForToken({
@@ -101,25 +104,24 @@ export async function GET(req: Request) {
   const webhookAddress = `${appUrl}/api/shopify/webhooks`;
 
   // Safe-by-default topics (won't require protected customer data approvals)
-  const topics: string[] = [
-    "app/uninstalled",
-    // Optional (useful later):
-    "shop/update",
-  ];
+  const topics: string[] = ["app/uninstalled", "shop/update"];
 
-  // If later you get approved for protected customer data, flip this on in Vercel env:
-  // SHOPIFY_ENABLE_ORDER_WEBHOOKS=true
+  // Enable order webhooks only if you explicitly turn it on (and your app is approved where required)
   if (process.env.SHOPIFY_ENABLE_ORDER_WEBHOOKS === "true") {
     topics.push("orders/create", "orders/updated", "orders/cancelled");
   }
 
   const results = await Promise.allSettled(
     topics.map((topic) =>
-      registerWebhook({ shop, accessToken: token.access_token, topic, address: webhookAddress })
+      registerWebhook({
+        shop,
+        accessToken: token.access_token,
+        topic,
+        address: webhookAddress,
+      })
     )
   );
 
-  // If you want visibility in Vercel logs without breaking install:
   const failures = results
     .map((r, i) => ({ r, topic: topics[i] }))
     .filter((x) => x.r.status === "rejected");
@@ -127,17 +129,27 @@ export async function GET(req: Request) {
   if (failures.length) {
     console.warn(
       "[shopify] webhook registration failures:",
-      failures.map((f) => ({ topic: f.topic, error: String((f.r as PromiseRejectedResult).reason) }))
+      failures.map((f) => ({
+        topic: f.topic,
+        error: String((f.r as PromiseRejectedResult).reason),
+      }))
     );
   }
 
-  // Redirect merchant back to your success page (embedded or standalone)
+  // ✅ Redirect to connect/success while PRESERVING embedded params from ctx.returnTo
+  // ctx.returnTo should already include embedded context like:
+  //   https://ordershifter.vercel.app/app?embedded=1&host=...
+  // We keep all existing query params, and just add shop + account.
   const redirectTo = new URL(ctx.returnTo);
+
   redirectTo.pathname = "/connect/success";
   redirectTo.searchParams.set("shop", shop);
   redirectTo.searchParams.set("account", tenant.slug);
 
-  const res = NextResponse.redirect(redirectTo.toString());
+  const res = NextResponse.redirect(redirectTo.toString(), { status: 302 });
+
+  // Clear ctx cookie after successful install
   res.cookies.set("os_shopify_ctx", "", { path: "/", maxAge: 0 });
+
   return res;
 }

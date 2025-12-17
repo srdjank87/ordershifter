@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
+    "@shopify/app-bridge": "^3.7.11",
+    "@shopify/app-bridge-react": "^4.2.8",
     "bullmq": "^5.66.1",
     "dotenv": "^17.2.3",
     "ioredis": "^5.8.2",
