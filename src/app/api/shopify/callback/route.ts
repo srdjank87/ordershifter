@@ -165,6 +165,7 @@ res.cookies.set("os_shopify_ctx", "", {
   maxAge: 0,
 });
 
+
 // Persist shop for later context recovery
 res.cookies.set("os_shop", shop, {
   httpOnly: false,
