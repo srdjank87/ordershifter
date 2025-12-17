@@ -3,205 +3,282 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-type Ctx = { shop?: string; host?: string; embedded?: string };
+
+// ---- Types ----
+type EmbedCtx = {
+  embedded: "1" | null;
+  host: string | null;
+  shop: string | null;
+};
 
 type TenantChoice = {
   tenantId: string;
-  tenantName: string; // later this becomes the branded 3PL name/logo
+  tenantName: string;
 };
 
-type AppContextResponse = {
+type AppContextResponseOk = {
   ok: true;
   shop: string;
   choices: TenantChoice[];
-  // MVP placeholders (wire these to real tables as we build)
   metrics: {
     exceptionsOpen: number;
-    lastExportAt?: string | null;
-    lastOrderSeenAt?: string | null;
+    lastExportAt: string | null;
+    lastOrderSeenAt: string | null;
     syncHealth: "good" | "warning" | "bad";
   };
 };
 
-function readSessionCtx(): Ctx {
-  if (typeof window === "undefined") return {};
+type AppContextResponseErr = {
+  ok: false;
+  error: string;
+};
+
+type AppContextResponse = AppContextResponseOk | AppContextResponseErr;
+
+// ---- Helpers ----
+function getUrlCtx(sp: URLSearchParams): EmbedCtx {
+  const embeddedRaw = sp.get("embedded");
   return {
-    shop: sessionStorage.getItem("os_shop") || undefined,
-    host: sessionStorage.getItem("os_host") || undefined,
-    embedded: sessionStorage.getItem("os_embedded") || undefined,
+    embedded: embeddedRaw === "1" ? "1" : null,
+    host: sp.get("host"),
+    shop: sp.get("shop"),
   };
 }
 
+
+function badgeForSyncHealth(health: "good" | "warning" | "bad") {
+  if (health === "good") return "badge-success";
+  if (health === "warning") return "badge-warning";
+  return "badge-error";
+}
+
+// ---- Component ----
 export default function AppHomeClient() {
-  const params = useSearchParams();
+  const searchParams = useSearchParams();
 
-  const urlCtx: Ctx = useMemo(
-    () => ({
-      shop: params.get("shop") ?? undefined,
-      host: params.get("host") ?? undefined,
-      embedded: params.get("embedded") ?? undefined,
-    }),
-    [params]
-  );
+  const urlCtx = useMemo(() => getUrlCtx(searchParams), [searchParams]);
 
-  const [data, setData] = useState<AppContextResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [data, setData] = useState<AppContextResponseOk | null>(null);
   const [selectedTenantId, setSelectedTenantId] = useState<string>("");
 
-  // Combine URL ctx with session ctx (no React state needed)
-  const ctx: Ctx = useMemo(() => {
-    const sessionCtx = readSessionCtx();
-    return {
-      shop: urlCtx.shop ?? sessionCtx.shop,
-      host: urlCtx.host ?? sessionCtx.host,
-      embedded: urlCtx.embedded ?? sessionCtx.embedded,
-    };
+  // Persist Shopify embed context so navigation inside the app keeps working
+  useEffect(() => {
+    if (urlCtx.shop) sessionStorage.setItem("os_shop", urlCtx.shop);
+    if (urlCtx.host) sessionStorage.setItem("os_host", urlCtx.host);
+    if (urlCtx.embedded) sessionStorage.setItem("os_embedded", urlCtx.embedded);
   }, [urlCtx.shop, urlCtx.host, urlCtx.embedded]);
 
-  // Persist ctx if URL has it
+  // Fetch app context (merchant + tenant choices + metrics)
   useEffect(() => {
-    if (!urlCtx.shop && !urlCtx.host) return;
-    sessionStorage.setItem("os_shop", urlCtx.shop ?? "");
-    sessionStorage.setItem("os_host", urlCtx.host ?? "");
-    sessionStorage.setItem("os_embedded", urlCtx.embedded ?? "");
-  }, [urlCtx.shop, urlCtx.host, urlCtx.embedded]);
-
-  // Load merchant->3PL context
-  useEffect(() => {
-    if (!ctx.shop) return;
-
     let cancelled = false;
-    (async () => {
+
+    async function run() {
       setLoading(true);
+      setError(null);
+
+      const shop =
+        urlCtx.shop ?? sessionStorage.getItem("os_shop") ?? undefined;
+
+      if (!shop) {
+        setLoading(false);
+        setError(
+          "Missing shop param. This page must be opened from Shopify admin (embedded)."
+        );
+        return;
+      }
+
       try {
-        const res = await fetch(`/api/app/context?shop=${encodeURIComponent(ctx.shop!)}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/app/context?shop=${encodeURIComponent(shop)}`,
+          { cache: "no-store" }
+        );
+
         const json = (await res.json()) as AppContextResponse;
+
+        if (!res.ok || !json.ok) {
+          throw new Error("error" in json ? json.error : `HTTP ${res.status}`);
+        }
 
         if (!cancelled) {
           setData(json);
-          // default tenant selection
-          if (json.choices?.length) {
-            setSelectedTenantId((prev) => prev || json.choices[0].tenantId);
-          }
+
+          // Default tenant selection (if multiple)
+          const first = json.choices?.[0]?.tenantId ?? "";
+          setSelectedTenantId((prev) => prev || first);
         }
-      } catch {
-        if (!cancelled) setData(null);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Unknown error";
+        if (!cancelled) {
+          setData(null);
+          setError(msg);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    }
+
+    run();
 
     return () => {
       cancelled = true;
     };
-  }, [ctx.shop]);
+  }, [urlCtx.shop]);
 
-  if (!ctx.shop) {
-    return (
-      <main className="min-h-screen bg-base-100">
-        <div className="max-w-5xl mx-auto px-4 py-8 space-y-4">
-          <div className="alert alert-warning">
-            <span className="font-semibold">Missing shop context.</span>
-            <span className="opacity-80">
-              Please launch the app from Shopify Admin so we can identify your store.
-            </span>
-          </div>
-
-          <p className="text-sm opacity-70">
-            If you’re seeing this inside Shopify, it usually means the embedded redirect
-            dropped the query string. (Fix is in middleware: preserve search params.)
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  const tenantLabel =
-    data?.choices?.find((c) => c.tenantId === selectedTenantId)?.tenantName || "Your 3PL";
-
+  // ---- UI ----
   return (
     <main className="min-h-screen bg-base-100">
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-5">
-        {/* Top bar (no OrderShifter branding) */}
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+        {/* Header (merchant-facing; branded later) */}
         <div className="flex items-center justify-between gap-3">
-          <div className="space-y-0.5">
-            <div className="font-bold text-lg">{tenantLabel}</div>
-            <div className="text-xs opacity-70">Merchant portal • {ctx.shop}</div>
+          <div className="space-y-1">
+            <h1 className="text-xl md:text-2xl font-bold">
+              Merchant Portal
+            </h1>
+            <p className="text-sm opacity-70">
+              Visibility + exceptions — without ops noise.
+            </p>
           </div>
 
-          {/* Optional multi-3PL dropdown (only show if >1) */}
-          {data?.choices?.length && data.choices.length > 1 ? (
-            <select
-              className="select select-bordered select-sm"
-              value={selectedTenantId}
-              onChange={(e) => setSelectedTenantId(e.target.value)}
-              aria-label="Choose 3PL"
-              title="Choose 3PL"
-            >
-              {data.choices.map((c) => (
-                <option key={c.tenantId} value={c.tenantId}>
-                  {c.tenantName}
-                </option>
-              ))}
-            </select>
-          ) : null}
+          {/* Placeholder: 3PL selector (only matters if merchant has multiple 3PLs) */}
+          <div className="flex items-center gap-2">
+            {data?.choices?.length ? (
+              <label className="form-control w-full max-w-xs">
+                <div className="label py-0">
+                  <span className="label-text text-xs opacity-70">
+                    Your 3PL
+                  </span>
+                </div>
+                <select
+                  className="select select-bordered select-sm"
+                  value={selectedTenantId}
+                  onChange={(e) => setSelectedTenantId(e.target.value)}
+                >
+                  {data.choices.map((c) => (
+                    <option key={c.tenantId} value={c.tenantId}>
+                      {c.tenantName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <span className="text-xs opacity-60">
+                {/* Will show once context loads */}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Main content */}
-        <div className="grid lg:grid-cols-3 gap-4">
-          <div className="card bg-base-200 shadow-sm lg:col-span-2">
-            <div className="card-body space-y-2">
-              <h1 className="text-xl font-bold">Ops Status (WIP)</h1>
-              <p className="opacity-80">
-                Next: show open exceptions, last export, and basic sync health for your store.
-              </p>
-
-              {loading ? (
-                <div className="opacity-70 text-sm">Loading…</div>
-              ) : data ? (
-                <div className="grid sm:grid-cols-3 gap-3 text-sm">
-                  <div className="bg-base-100 border border-base-300 rounded-xl p-3">
-                    <div className="text-xs opacity-70">Open exceptions</div>
-                    <div className="text-2xl font-bold">{data.metrics.exceptionsOpen}</div>
-                  </div>
-
-                  <div className="bg-base-100 border border-base-300 rounded-xl p-3">
-                    <div className="text-xs opacity-70">Sync health</div>
-                    <div className="text-lg font-semibold capitalize">{data.metrics.syncHealth}</div>
-                  </div>
-
-                  <div className="bg-base-100 border border-base-300 rounded-xl p-3">
-                    <div className="text-xs opacity-70">Last export</div>
-                    <div className="text-sm font-semibold">
-                      {data.metrics.lastExportAt ? new Date(data.metrics.lastExportAt).toLocaleString() : "—"}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="alert alert-error">
-                  <span className="font-semibold">Couldn’t load app context.</span>
-                  <span className="opacity-80">Check `/api/app/context` logs in Vercel.</span>
-                </div>
-              )}
+        {/* State blocks */}
+        {loading ? (
+          <div className="card bg-base-200 border border-base-300 shadow-sm">
+            <div className="card-body">
+              <div className="flex items-center gap-3">
+                <span className="loading loading-spinner loading-sm" />
+                <p className="opacity-80">Loading portal…</p>
+              </div>
             </div>
           </div>
-
-          <div className="card bg-base-200 shadow-sm">
-            <div className="card-body space-y-2">
-              <h2 className="font-semibold">What’s next</h2>
-              <ul className="list-disc list-inside opacity-80 text-sm space-y-1">
-                <li>Exception list + resolution links</li>
-                <li>Routing + export status</li>
-                <li>Webhook + sync diagnostics</li>
-              </ul>
-              <p className="text-xs opacity-70">
-                (Branding will become 3PL-specific later: logo + name + colors.)
-              </p>
-            </div>
+        ) : error ? (
+          <div className="alert alert-error">
+            <span className="font-semibold">Couldn’t load app context.</span>
+            <span className="opacity-80">{error}</span>
           </div>
-        </div>
+        ) : !data ? (
+          <div className="alert">
+            <span className="font-semibold">No data yet.</span>
+          </div>
+        ) : (
+          <>
+            {/* Quick metrics row */}
+            <div className="grid md:grid-cols-3 gap-3">
+              <div className="card bg-base-200 border border-base-300 shadow-sm">
+                <div className="card-body space-y-1">
+                  <p className="text-xs opacity-70">Sync health</p>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`badge ${badgeForSyncHealth(
+                        data.metrics.syncHealth
+                      )}`}
+                    >
+                      {data.metrics.syncHealth.toUpperCase()}
+                    </span>
+                    <span className="text-xs opacity-70">
+                      Shopify → WMS layer
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card bg-base-200 border border-base-300 shadow-sm">
+                <div className="card-body space-y-1">
+                  <p className="text-xs opacity-70">Open exceptions</p>
+                  <p className="text-2xl font-bold">
+                    {data.metrics.exceptionsOpen}
+                  </p>
+                  <p className="text-xs opacity-70">
+                    Needs review before export
+                  </p>
+                </div>
+              </div>
+
+              <div className="card bg-base-200 border border-base-300 shadow-sm">
+                <div className="card-body space-y-1">
+                  <p className="text-xs opacity-70">Last export</p>
+                  <p className="font-semibold">
+                    {data.metrics.lastExportAt
+                      ? new Date(data.metrics.lastExportAt).toLocaleString()
+                      : "—"}
+                  </p>
+                  <p className="text-xs opacity-70">
+                    Scheduled + validated payloads
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Next actions */}
+            <div className="card bg-base-200 border border-base-300 shadow-sm">
+              <div className="card-body space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="font-semibold">Next steps</h2>
+                  <span className="text-xs opacity-60">
+                    Shop: {data.shop}
+                  </span>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-3 text-sm">
+                  <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-2">
+                    <p className="font-semibold">Review exceptions</p>
+                    <p className="opacity-80">
+                      See the small set of orders that would otherwise create the
+                      most noise.
+                    </p>
+                    <button className="btn btn-sm btn-primary w-full" disabled>
+                      View exceptions (next)
+                    </button>
+                  </div>
+
+                  <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-2">
+                    <p className="font-semibold">Sync status</p>
+                    <p className="opacity-80">
+                      Confirm exports are running and tracking is flowing back.
+                    </p>
+                    <button className="btn btn-sm btn-outline w-full" disabled>
+                      View sync health (next)
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-xs opacity-70">
+                  MVP note: these buttons will be wired up once we add the Exceptions + Export log tables.
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </main>
   );
