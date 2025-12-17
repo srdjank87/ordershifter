@@ -1,15 +1,30 @@
-import IORedis from "ioredis";
+// src/lib/queue/connection.ts
+import type { ConnectionOptions } from "bullmq";
 
+let cached: ConnectionOptions | null = null;
 
-const redisUrl = process.env.REDIS_URL;
+/**
+ * Lazy connection getter.
+ * - Does NOT throw at import time (important for Vercel builds).
+ * - Throws only when called at runtime and REDIS_URL is missing.
+ */
+export function getRedisConnection(): ConnectionOptions {
+  if (cached) return cached;
 
-if (!redisUrl) {
-  throw new Error("Missing REDIS_URL env var (needs redis:// or rediss://)");
+  const url = process.env.REDIS_URL;
+
+  if (!url) {
+    throw new Error(
+      "Missing REDIS_URL env var (needs redis:// or rediss://). Set it in Vercel Environment Variables."
+    );
+  }
+
+  if (!url.startsWith("redis://") && !url.startsWith("rediss://")) {
+    throw new Error(
+      "Invalid REDIS_URL: must start with redis:// or rediss://"
+    );
+  }
+
+  cached = { url };
+  return cached;
 }
-
-// Shared Redis connection for BullMQ
-export const connection = new IORedis(redisUrl, {
-  // Upstash needs TLS; rediss:// already implies TLS
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-});
