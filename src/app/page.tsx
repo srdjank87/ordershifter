@@ -1,5 +1,4 @@
 
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 // ...your other imports
@@ -32,30 +31,32 @@ import {
 
 // src/app/page.tsx
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+import { redirect } from "next/navigation";
+
+// helper
+function first(param: string | string[] | undefined) {
+  if (!param) return undefined;
+  return Array.isArray(param) ? param[0] : param;
+}
 
 export default function Home({
   searchParams,
 }: {
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const embedded = searchParams?.embedded;
-  const shop = searchParams?.shop;
-  const host = searchParams?.host;
+  const embedded = first(searchParams?.embedded);
+  const shop = first(searchParams?.shop);
+  const host = first(searchParams?.host);
 
-  const isEmbedded =
-    embedded === "1" ||
-    (Array.isArray(embedded) ? embedded[0] === "1" : false) ||
-    Boolean(shop) ||
-    Boolean(host);
-
-  // If Shopify is loading this in the embedded iframe, send them to the merchant app
-  if (isEmbedded) {
-    // Preserve ALL query params so App Bridge context stays intact
+  // Shopify embedded loads / with query params; send them to /app WITH THE SAME PARAMS
+  if (embedded === "1" || !!shop || !!host) {
     const qs = new URLSearchParams();
 
-    for (const [key, value] of Object.entries(searchParams ?? {})) {
-      if (typeof value === "string") qs.set(key, value);
-      else if (Array.isArray(value)) value.forEach((v) => qs.append(key, v));
+    for (const [k, v] of Object.entries(searchParams ?? {})) {
+      if (typeof v === "string") qs.set(k, v);
+      else if (Array.isArray(v) && v[0]) qs.set(k, v[0]);
     }
 
     redirect(`/app?${qs.toString()}`);
