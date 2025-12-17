@@ -30,7 +30,7 @@ export async function GET(req: Request) {
       );
     }
 
-    // Find merchant accounts for this shop (select only tenantId to avoid relation coupling)
+    // Find merchant accounts for this shop
     const accounts = await prisma.merchantAccount.findMany({
       where: { shopDomain: shop },
       select: { tenantId: true },
@@ -53,7 +53,6 @@ export async function GET(req: Request) {
       tenantName: t.name ?? "Your 3PL",
     }));
 
-    // MVP placeholder metrics (wire to real tables later)
     const payload: AppContextOk = {
       ok: true,
       shop,
@@ -66,13 +65,9 @@ export async function GET(req: Request) {
       },
     };
 
-    return NextResponse.json(payload, { status: 200 });
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
-
-    console.error("GET /api/app/context failed:", message, err);
-
+    return NextResponse.json<AppContextOk>(payload);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json<AppContextErr>(
       { ok: false, error: message },
       { status: 500 }

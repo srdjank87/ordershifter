@@ -41,16 +41,18 @@ model User {
 }
 
 model Tenant {
-  id           String            @id @default(cuid())
-  name         String
-  slug         String            @unique
-  settings     TenantSettings?
-  users        User[]
-  merchants    MerchantAccount[]
-  warehouses   Warehouse[]
-  routingRules RoutingRule[] // ✅ ADD THIS
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  settings        TenantSettings?
+  users           User[]
+  merchants       MerchantAccount[]
+  warehouses      Warehouse[]
+  routingRules    RoutingRule[] // ✅ ADD THIS
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  orderExceptions OrderException[]
+  exportLogs      ExportLog[]
 }
 
 model TenantSettings {
@@ -96,6 +98,9 @@ model MerchantAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  orderExceptions OrderException[]
+  exportLogs      ExportLog[]
+
   @@unique([tenantId, shopDomain])
 }
 
@@ -118,6 +123,9 @@ model ShopifyOrder {
   lastError String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  exceptions OrderException[]
+  exportLogs ExportLog[]
 
   @@unique([merchantId, shopifyOrderId])
   @@index([tenantId, state, readyAt])
@@ -143,4 +151,55 @@ model RoutingRule {
   updatedAt DateTime @updatedAt
 
   @@index([tenantId, enabled, priority])
+}
+
+enum ExceptionStatus {
+  OPEN
+  RESOLVED
+}
+
+enum ExportStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+model OrderException {
+  id         String @id @default(cuid())
+  tenantId   String
+  merchantId String
+  orderId    String
+
+  code    String
+  message String
+  status  ExceptionStatus @default(OPEN)
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  merchant MerchantAccount @relation(fields: [merchantId], references: [id])
+  order    ShopifyOrder    @relation(fields: [orderId], references: [id])
+
+  @@index([tenantId, merchantId, status])
+  @@index([orderId])
+}
+
+model ExportLog {
+  id         String  @id @default(cuid())
+  tenantId   String
+  merchantId String
+  orderId    String?
+
+  status  ExportStatus @default(QUEUED)
+  summary String?
+  error   String?
+
+  createdAt DateTime @default(now())
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  merchant MerchantAccount @relation(fields: [merchantId], references: [id])
+  order    ShopifyOrder?   @relation(fields: [orderId], references: [id])
+
+  @@index([tenantId, merchantId, createdAt])
 }
