@@ -1,27 +1,23 @@
+// src/middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
+  const url = req.nextUrl;
+  const shop = url.searchParams.get("shop");
+  const host = url.searchParams.get("host");
 
-  // Only intercept the marketing root
-  if (pathname !== "/") return NextResponse.next();
+  // Continue request
+  const res = NextResponse.next();
 
-  const embedded = searchParams.get("embedded");
-  const shop = searchParams.get("shop");
-  const host = searchParams.get("host");
+  // If Shopify provides shop/host on any request, persist them
+  if (shop) res.cookies.set("os_shop", shop, { path: "/" });
+  if (host) res.cookies.set("os_host", host, { path: "/" });
 
-  // Shopify embedded loads / with these params
-  if (embedded === "1" || !!shop || !!host) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/app"; // ✅ merchant app home
-    return NextResponse.redirect(url); // preserves the full query string
-  }
-
-  return NextResponse.next();
+  return res;
 }
 
-// Avoid catching next internals + static assets
+// Run on landing + embedded app routes (adjust if you want)
 export const config = {
-  matcher: ["/"],
+  matcher: ["/", "/app/:path*", "/dashboard/:path*"],
 };

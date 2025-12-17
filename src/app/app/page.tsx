@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 
+import { cookies } from "next/headers";
+
 // App Router page can read query params via `searchParams`
 type PageProps = {
   searchParams?: Record<string, string | string[] | undefined>;
@@ -14,8 +16,14 @@ function first(param: string | string[] | undefined) {
 }
 
 export default async function AppHome({ searchParams }: PageProps) {
-  const shop = first(searchParams?.shop);
-  const host = first(searchParams?.host);
+  const cookieStore = await cookies(); // ✅ await is the fix
+
+  const shop =
+    first(searchParams?.shop) ?? cookieStore.get("os_shop")?.value;
+
+  const host =
+    first(searchParams?.host) ?? cookieStore.get("os_host")?.value;
+
   const embedded = first(searchParams?.embedded);
 
   // If Shopify opens your app, it SHOULD pass `shop` (+ usually `host`)
