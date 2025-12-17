@@ -1,48 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
+// src/middleware.ts
+import { NextResponse, type NextRequest } from "next/server";
 
-function cookieOptions(req: NextRequest) {
-  const isHttps = req.nextUrl.protocol === "https:";
-  return {
-    httpOnly: true,
-    secure: isHttps,          // must be true on https (Vercel)
-    sameSite: "none" as const, // REQUIRED for Shopify iframe
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  };
-}
+const EMBED_COOKIE_OPTS = {
+  httpOnly: true,
+  secure: true,       // must be true when SameSite=None
+  sameSite: "none" as const,
+  path: "/",
+  maxAge: 60 * 60 * 24 * 7, // 7 days (tweak as you like)
+};
 
 export function middleware(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
+  const url = req.nextUrl;
 
-  const embedded = searchParams.get("embedded");
-  const shop = searchParams.get("shop");
-  const host = searchParams.get("host");
+  const embedded = url.searchParams.get("embedded"); // "1"
+  const shop = url.searchParams.get("shop");
+  const host = url.searchParams.get("host");
 
-  const isShopifyEmbedded = embedded === "1" && !!shop && !!host;
-
-  // When Shopify loads your App URL (/) in the iframe, redirect to /app
-  if (pathname === "/" && isShopifyEmbedded) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/app";
-
-    // IMPORTANT: don't wipe querystring (keep shop/host available)
-    // url.search = "";  <-- remove this if you had it
-
-    const res = NextResponse.redirect(url);
-
-    const opts = cookieOptions(req);
-    res.cookies.set("os_shop", shop!, opts);
-    res.cookies.set("os_host", host!, opts);
-
-    return res;
-  }
-
-  // If /app is loaded WITH params, persist them too
-  if (pathname.startsWith("/app") && isShopifyEmbedded) {
+  // Only set cookies when Shopify actually gives us context
+  if (embedded === "1" && shop) {
     const res = NextResponse.next();
-    const opts = cookieOptions(req);
-    res.cookies.set("os_shop", shop!, opts);
-    res.cookies.set("os_host", host!, opts);
+
+    res.cookies.set("os_shop", shop, EMBED_COOKIE_OPTS);
+    res.cookies.set("os_embedded", "1", EMBED_COOKIE_OPTS);
+    if (host) res.cookies.set("os_host", host, EMBED_COOKIE_OPTS);
+
     return res;
   }
 
@@ -50,5 +31,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/app/:path*"],
+  matcher: ["/", "/app/:path*", "/api/app/:path*"],
 };

@@ -56,6 +56,8 @@ export async function GET(req: Request) {
       );
     }
 
+    
+
     // Persist shop cookie so future calls don't require query params
     cookieStore.set("os_shop", shop, {
       httpOnly: true,
