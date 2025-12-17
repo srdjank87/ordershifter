@@ -66,14 +66,22 @@ type OrderRow = {
   createdAt: string;
 };
 
-type OrdersResp = { ok: true; items: OrderRow[] } | { ok: false; error: string };
+type OrdersResp =
+  | { ok: true; items: OrderRow[] }
+  | { ok: false; error: string };
 
-async function safeJson<T>(url: string): Promise<T | { ok: false; error: string }> {
+// ---- Fetch helper (returns parsed JSON OR {ok:false,error})
+async function safeJson(url: string): Promise<unknown | { ok: false; error: string }> {
   try {
     const res = await fetch(url, { cache: "no-store" });
     const text = await res.text();
+
+    if (!text) {
+      return { ok: false, error: `Empty response (${res.status})` };
+    }
+
     try {
-      return JSON.parse(text) as T;
+      return JSON.parse(text) as unknown;
     } catch {
       return { ok: false, error: `Non-JSON response (${res.status})` };
     }
@@ -83,6 +91,52 @@ async function safeJson<T>(url: string): Promise<T | { ok: false; error: string 
   }
 }
 
+// ---- Normalizers (prevent undefined .items / weird shapes from crashing UI)
+function asArray<T>(v: unknown): T[] {
+  return Array.isArray(v) ? (v as T[]) : [];
+}
+
+function normalizeStats(v: unknown): StatsResp {
+  if (typeof v !== "object" || v === null) return { ok: false, error: "Invalid stats response" };
+  const anyV = v as { ok?: unknown; error?: unknown; counts?: unknown; lastExportAt?: unknown; syncHealth?: unknown; message?: unknown };
+
+  if (anyV.ok === true) {
+    const counts = (typeof anyV.counts === "object" && anyV.counts !== null ? (anyV.counts as Record<string, number>) : {}) as Record<string, number>;
+    return {
+      ok: true,
+      counts,
+      lastExportAt: typeof anyV.lastExportAt === "string" || anyV.lastExportAt === null ? (anyV.lastExportAt as string | null) : undefined,
+      syncHealth: anyV.syncHealth === "OK" || anyV.syncHealth === "WARN" || anyV.syncHealth === "ERROR" ? (anyV.syncHealth as "OK" | "WARN" | "ERROR") : undefined,
+      message: typeof anyV.message === "string" ? (anyV.message as string) : undefined,
+    };
+  }
+
+  return { ok: false, error: typeof anyV.error === "string" ? (anyV.error as string) : "Stats request failed" };
+}
+
+function normalizeExceptions(v: unknown): ExceptionsResp {
+  if (typeof v !== "object" || v === null) return { ok: false, error: "Invalid exceptions response" };
+  const anyV = v as { ok?: unknown; error?: unknown; items?: unknown };
+
+  if (anyV.ok === true) return { ok: true, items: asArray<ExceptionRow>(anyV.items) };
+  return { ok: false, error: typeof anyV.error === "string" ? (anyV.error as string) : "Exceptions request failed" };
+}
+
+function normalizeExports(v: unknown): ExportsResp {
+  if (typeof v !== "object" || v === null) return { ok: false, error: "Invalid exports response" };
+  const anyV = v as { ok?: unknown; error?: unknown; items?: unknown };
+
+  if (anyV.ok === true) return { ok: true, items: asArray<ExportRow>(anyV.items) };
+  return { ok: false, error: typeof anyV.error === "string" ? (anyV.error as string) : "Exports request failed" };
+}
+
+function normalizeOrders(v: unknown): OrdersResp {
+  if (typeof v !== "object" || v === null) return { ok: false, error: "Invalid orders response" };
+  const anyV = v as { ok?: unknown; error?: unknown; items?: unknown };
+
+  if (anyV.ok === true) return { ok: true, items: asArray<OrderRow>(anyV.items) };
+  return { ok: false, error: typeof anyV.error === "string" ? (anyV.error as string) : "Orders request failed" };
+}
 
 export default function AppHomeClient() {
   const sp = useSearchParams();
@@ -130,6 +184,8 @@ export default function AppHomeClient() {
 
   // ---- Load app context (and run install if needed)
   useEffect(() => {
+    let alive = true;
+
     const run = async () => {
       setCtxError("");
 
@@ -161,8 +217,7 @@ export default function AppHomeClient() {
 
           const redirect = Redirect.create(app);
 
-          const origin =
-            typeof window !== "undefined" ? window.location.origin : "";
+          const origin = window.location.origin;
           const installUrl =
             `${origin}/api/shopify/install?shop=${encodeURIComponent(data.shop)}` +
             `&host=${encodeURIComponent(data.host || host)}` +
@@ -179,42 +234,54 @@ export default function AppHomeClient() {
       }
 
       if (!data.ok) {
+        if (!alive) return;
         setCtxError(data.error || "Couldn’t load app context.");
         return;
       }
 
+      if (!alive) return;
       setCtx(data);
     };
 
     run().catch((e: unknown) => {
       const msg = e instanceof Error ? e.message : "Couldn’t load app context.";
-      setCtxError(msg);
+      if (alive) setCtxError(msg);
     });
+
+    return () => {
+      alive = false;
+    };
   }, [shop, host, embedded]);
 
   // ---- Once context is loaded, fetch dashboard data
   useEffect(() => {
-  if (!ctx?.shop) return;
+    let alive = true;
+    if (!ctx?.shop) return;
 
-  const qs = new URLSearchParams({ shop: ctx.shop });
+    const qs = new URLSearchParams({ shop: ctx.shop });
 
-  const loadAll = async () => {
-    const [s, ex, exp, o] = await Promise.all([
-      safeJson<StatsResp>(`/api/app/stats?${qs}`),
-      safeJson<ExceptionsResp>(`/api/app/exceptions?${qs}`),
-      safeJson<ExportsResp>(`/api/app/exports?${qs}`),
-      safeJson<OrdersResp>(`/api/app/orders?${qs}`),
-    ]);
+    const loadAll = async () => {
+      const [sRaw, exRaw, expRaw, oRaw] = await Promise.all([
+        safeJson(`/api/app/stats?${qs}`),
+        safeJson(`/api/app/exceptions?${qs}`),
+        safeJson(`/api/app/exports?${qs}`),
+        safeJson(`/api/app/orders?${qs}`),
+      ]);
 
-    setStats(s as StatsResp);
-    setExceptions(ex as ExceptionsResp);
-    setExportsLog(exp as ExportsResp);
-    setOrders(o as OrdersResp);
-  };
+      if (!alive) return;
 
-  loadAll();
-}, [ctx?.shop]);
+      setStats(normalizeStats(sRaw));
+      setExceptions(normalizeExceptions(exRaw));
+      setExportsLog(normalizeExports(expRaw));
+      setOrders(normalizeOrders(oRaw));
+    };
 
+    loadAll();
+
+    return () => {
+      alive = false;
+    };
+  }, [ctx?.shop]);
 
   // ---- UI states
   if (ctxError) {
@@ -380,9 +447,7 @@ export default function AppHomeClient() {
                   <tbody>
                     {exceptions.items.slice(0, 8).map((x) => (
                       <tr key={x.id}>
-                        <td className="font-medium">
-                          {x.orderName ?? x.code}
-                        </td>
+                        <td className="font-medium">{x.orderName ?? x.code}</td>
                         <td className="max-w-[340px] truncate">{x.message}</td>
                         <td>{x.status}</td>
                         <td className="hidden md:table-cell">
