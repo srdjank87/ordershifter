@@ -7,10 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "worker": "tsx src/worker.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
+    "bullmq": "^5.66.1",
+    "ioredis": "^5.8.2",
     "lucide-react": "^0.556.0",
     "next": "16.0.7",
     "react": "19.2.0",

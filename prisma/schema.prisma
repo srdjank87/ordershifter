@@ -21,10 +21,9 @@ enum MerchantStatus {
 }
 
 enum OrderState {
-  PENDING_DELAY
-  READY_TO_ROUTE
-  ROUTED
-  EXPORT_QUEUED
+  PENDING
+  HELD
+  READY
   EXPORTED
   ERROR
 }
@@ -116,7 +115,7 @@ model ShopifyOrder {
   createdAtShopify DateTime?
   payload          Json
 
-  state             OrderState @default(PENDING_DELAY)
+  state             OrderState @default(PENDING)
   readyAt           DateTime // createdAtShopify + delay
   routedWarehouseId String?
   exportBatchId     String?

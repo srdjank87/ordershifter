@@ -31,7 +31,7 @@ export async function registerWebhook(opts: {
   topic: string;
   address: string; // full URL
 }) {
-  const res = await fetch(`https://${opts.shop}/admin/api/2025-01/webhooks.json`, {
+  const res = await fetch(`https://${opts.shop}/admin/api/2025-10/webhooks.json`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         shopifyName,
         createdAtShopify,
         payload,
-        state: "PENDING_DELAY",
+        state: "READY",
         readyAt,
       },
     });
