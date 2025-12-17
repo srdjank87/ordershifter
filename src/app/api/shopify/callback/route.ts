@@ -1,4 +1,4 @@
-// app/api/shopify/callback/route.ts
+// src/app/api/shopify/callback/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPayload } from "@/lib/shopify/signing";
@@ -15,9 +15,16 @@ type ShopifyCtx = {
 export async function GET(req: Request) {
   const url = new URL(req.url);
 
-  const apiKey = process.env.SHOPIFY_API_KEY!;
-  const apiSecret = process.env.SHOPIFY_API_SECRET!;
-  const appUrl = process.env.SHOPIFY_APP_URL!;
+  const apiKey = process.env.SHOPIFY_API_KEY;
+  const apiSecret = process.env.SHOPIFY_API_SECRET;
+  const appUrl = process.env.SHOPIFY_APP_URL;
+
+  if (!apiKey || !apiSecret || !appUrl) {
+    return NextResponse.json(
+      { error: "Missing SHOPIFY_API_KEY / SHOPIFY_API_SECRET / SHOPIFY_APP_URL" },
+      { status: 500 }
+    );
+  }
 
   const shop = url.searchParams.get("shop");
   const code = url.searchParams.get("code");
@@ -38,8 +45,8 @@ export async function GET(req: Request) {
     .split(";")
     .map((s) => s.trim())
     .find((c) => c.startsWith("os_shopify_ctx="));
-  const raw = ctxCookie?.split("=").slice(1).join("=");
 
+  const raw = ctxCookie?.split("=").slice(1).join("=");
   if (!raw) return NextResponse.json({ error: "Missing context cookie" }, { status: 400 });
 
   const ctx = verifyPayload<ShopifyCtx>(decodeURIComponent(raw));
@@ -49,7 +56,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "State mismatch" }, { status: 401 });
   }
 
-  const tenant = await prisma.tenant.findUnique({ where: { slug: ctx.tenantSlug }, include: { settings: true } });
+  const tenant = await prisma.tenant.findUnique({
+    where: { slug: ctx.tenantSlug },
+    include: { settings: true },
+  });
+
   if (!tenant) return NextResponse.json({ error: "Unknown 3PL account" }, { status: 404 });
 
   // Exchange code for access token
@@ -79,19 +90,42 @@ export async function GET(req: Request) {
     },
   });
 
-  // Register webhooks (point to canonical domain)
+  // Register webhooks (non-fatal)
   const webhookAddress = `${appUrl}/api/shopify/webhooks`;
 
-  // Core order topics
-  await registerWebhook({ shop, accessToken: token.access_token, topic: "orders/create", address: webhookAddress });
-  await registerWebhook({ shop, accessToken: token.access_token, topic: "orders/updated", address: webhookAddress });
-  await registerWebhook({ shop, accessToken: token.access_token, topic: "orders/cancelled", address: webhookAddress });
+  // Safe-by-default topics (won't require protected customer data approvals)
+  const topics: string[] = [
+    "app/uninstalled",
+    // Optional (useful later):
+    "shop/update",
+  ];
 
-  // Optional later: fulfillments/create, refunds/create, etc.
+  // If later you get approved for protected customer data, flip this on in Vercel env:
+  // SHOPIFY_ENABLE_ORDER_WEBHOOKS=true
+  if (process.env.SHOPIFY_ENABLE_ORDER_WEBHOOKS === "true") {
+    topics.push("orders/create", "orders/updated", "orders/cancelled");
+  }
 
-  // Clear ctx cookie, redirect merchant back to the branded origin
+  const results = await Promise.allSettled(
+    topics.map((topic) =>
+      registerWebhook({ shop, accessToken: token.access_token, topic, address: webhookAddress })
+    )
+  );
+
+  // If you want visibility in Vercel logs without breaking install:
+  const failures = results
+    .map((r, i) => ({ r, topic: topics[i] }))
+    .filter((x) => x.r.status === "rejected");
+
+  if (failures.length) {
+    console.warn(
+      "[shopify] webhook registration failures:",
+      failures.map((f) => ({ topic: f.topic, error: String((f.r as PromiseRejectedResult).reason) }))
+    );
+  }
+
+  // Redirect merchant back to your success page (embedded or standalone)
   const redirectTo = new URL(ctx.returnTo);
-  // put them on a branded "connected" page (you can build this route later)
   redirectTo.pathname = "/connect/success";
   redirectTo.searchParams.set("shop", shop);
   redirectTo.searchParams.set("account", tenant.slug);
