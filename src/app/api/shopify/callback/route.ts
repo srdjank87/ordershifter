@@ -12,7 +12,10 @@ type ShopifyCtx = {
   iat: number;
 };
 
+
 export async function GET(req: Request) {
+
+  console.log("✅ CALLBACK HIT", { url: req.url });
   const url = new URL(req.url);
 
   const apiKey = process.env.SHOPIFY_API_KEY;
@@ -25,6 +28,8 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
+
+  
 
   const shop = url.searchParams.get("shop");
   const code = url.searchParams.get("code");
@@ -89,6 +94,8 @@ export async function GET(req: Request) {
       installedAt: new Date(),
     },
   });
+
+  console.log("✅ MERCHANT UPSERT", { shop, tenantId: tenant.id });
 
   // Register webhooks (non-fatal)
   const webhookAddress = `${appUrl}/api/shopify/webhooks`;
