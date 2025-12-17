@@ -8,9 +8,17 @@ import { exchangeCodeForToken, registerWebhook } from "@/lib/shopify/client";
 type ShopifyCtx = {
   state: string;
   tenantSlug: string;
-  returnTo: string; // IMPORTANT: should include embedded context (host, embedded=1) if embedded install
+  returnTo: string; // should include embedded context (host, embedded=1) if embedded install
   iat: number;
 };
+
+function getCookieValue(cookieHeader: string, name: string) {
+  const part = cookieHeader
+    .split(";")
+    .map((s) => s.trim())
+    .find((c) => c.startsWith(`${name}=`));
+  return part ? part.split("=").slice(1).join("=") : null;
+}
 
 export async function GET(req: Request) {
   console.log("✅ CALLBACK HIT", { url: req.url });
@@ -41,19 +49,15 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Invalid HMAC" }, { status: 401 });
   }
 
-  // Read signed ctx cookie
+  // Read signed ctx cookie created during /api/shopify/install
   const cookieHeader = req.headers.get("cookie") || "";
-  const ctxCookie = cookieHeader
-    .split(";")
-    .map((s) => s.trim())
-    .find((c) => c.startsWith("os_shopify_ctx="));
+  const rawCtx = getCookieValue(cookieHeader, "os_shopify_ctx");
 
-  const raw = ctxCookie?.split("=").slice(1).join("=");
-  if (!raw) {
+  if (!rawCtx) {
     return NextResponse.json({ error: "Missing context cookie" }, { status: 400 });
   }
 
-  const ctx = verifyPayload<ShopifyCtx>(decodeURIComponent(raw));
+  const ctx = verifyPayload<ShopifyCtx>(decodeURIComponent(rawCtx));
   if (!ctx) {
     return NextResponse.json({ error: "Invalid context cookie" }, { status: 400 });
   }
@@ -103,10 +107,7 @@ export async function GET(req: Request) {
   // Register webhooks (non-fatal)
   const webhookAddress = `${appUrl}/api/shopify/webhooks`;
 
-  // Safe-by-default topics (won't require protected customer data approvals)
   const topics: string[] = ["app/uninstalled", "shop/update"];
-
-  // Enable order webhooks only if you explicitly turn it on (and your app is approved where required)
   if (process.env.SHOPIFY_ENABLE_ORDER_WEBHOOKS === "true") {
     topics.push("orders/create", "orders/updated", "orders/cancelled");
   }
@@ -136,20 +137,52 @@ export async function GET(req: Request) {
     );
   }
 
-  // ✅ Redirect to connect/success while PRESERVING embedded params from ctx.returnTo
-  // ctx.returnTo should already include embedded context like:
-  //   https://ordershifter.vercel.app/app?embedded=1&host=...
-  // We keep all existing query params, and just add shop + account.
-  const redirectTo = new URL(ctx.returnTo);
+  // Build redirect target from ctx.returnTo, preserving embedded params (host, embedded=1)
+  const returnToUrl = new URL(ctx.returnTo);
+  const host = returnToUrl.searchParams.get("host") ?? "";
+  const embedded = returnToUrl.searchParams.get("embedded") === "1" ? "1" : null;
 
+  const redirectTo = new URL(ctx.returnTo);
   redirectTo.pathname = "/connect/success";
   redirectTo.searchParams.set("shop", shop);
   redirectTo.searchParams.set("account", tenant.slug);
 
   const res = NextResponse.redirect(redirectTo.toString(), { status: 302 });
 
-  // Clear ctx cookie after successful install
-  res.cookies.set("os_shopify_ctx", "", { path: "/", maxAge: 0 });
+  // IMPORTANT: cookies must be usable inside Shopify Admin iframe:
+  // - SameSite=None
+  // - Secure=true on HTTPS
+  const isHttps = appUrl.startsWith("https://");
+  const commonCookie = {
+    path: "/",
+    httpOnly: true,
+    secure: isHttps,
+    sameSite: "none" as const,
+  };
+
+  // ✅ Persist embedded app context for subsequent requests (context/stats/orders/etc)
+  res.cookies.set("os_shop", shop, { ...commonCookie, maxAge: 60 * 60 * 24 * 30 }); // 30d
+  res.cookies.set("os_tenantId", tenant.id, { ...commonCookie, maxAge: 60 * 60 * 24 * 30 });
+  res.cookies.set("os_tenantName", tenant.name ?? tenant.slug, {
+    ...commonCookie,
+    maxAge: 60 * 60 * 24 * 30,
+  });
+
+  if (host) {
+    res.cookies.set("os_host", host, { ...commonCookie, maxAge: 60 * 60 * 24 * 30 });
+  }
+  if (embedded) {
+    res.cookies.set("os_embedded", "1", { ...commonCookie, maxAge: 60 * 60 * 24 * 30 });
+  }
+
+  // Clear one-time ctx cookie after successful install
+  res.cookies.set("os_shopify_ctx", "", {
+    path: "/",
+    maxAge: 0,
+    secure: isHttps,
+    sameSite: "none",
+    httpOnly: true,
+  });
 
   return res;
 }
