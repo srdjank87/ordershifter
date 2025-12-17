@@ -1,5 +1,9 @@
+
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+// ...your other imports
+
 import {
   ArrowRight,
   ShieldCheck,
@@ -27,7 +31,7 @@ import {
 } from "lucide-react";
 
 // src/app/page.tsx
-import { redirect } from "next/navigation";
+export const dynamic = "force-dynamic";
 
 export default function Home({
   searchParams,
@@ -36,12 +40,26 @@ export default function Home({
 }) {
   const embedded = searchParams?.embedded;
   const shop = searchParams?.shop;
+  const host = searchParams?.host;
+
+  const isEmbedded =
+    embedded === "1" ||
+    (Array.isArray(embedded) ? embedded[0] === "1" : false) ||
+    Boolean(shop) ||
+    Boolean(host);
 
   // If Shopify is loading this in the embedded iframe, send them to the merchant app
-  if (embedded === "1" || (Array.isArray(embedded) ? embedded[0] === "1" : false) || shop) {
-    redirect("/app");
-  }
+  if (isEmbedded) {
+    // Preserve ALL query params so App Bridge context stays intact
+    const qs = new URLSearchParams();
 
+    for (const [key, value] of Object.entries(searchParams ?? {})) {
+      if (typeof value === "string") qs.set(key, value);
+      else if (Array.isArray(value)) value.forEach((v) => qs.append(key, v));
+    }
+
+    redirect(`/app?${qs.toString()}`);
+  }
   // 👇 If NOT embedded, render the marketing site
   return (
     <main className="bg-base-100 text-base-content">
