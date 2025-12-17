@@ -1,8 +1,5 @@
-
 import Link from "next/link";
 import Image from "next/image";
-// ...your other imports
-
 import {
   ArrowRight,
   ShieldCheck,
@@ -29,42 +26,9 @@ import {
   XCircle,
 } from "lucide-react";
 
-// src/app/page.tsx
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-import { redirect } from "next/navigation";
-
-// helper
-function first(param: string | string[] | undefined) {
-  if (!param) return undefined;
-  return Array.isArray(param) ? param[0] : param;
-}
-
-export default function Home({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[] | undefined>;
-}) {
-  const embedded = first(searchParams?.embedded);
-  const shop = first(searchParams?.shop);
-  const host = first(searchParams?.host);
-
-  // Shopify embedded loads / with query params; send them to /app WITH THE SAME PARAMS
-  if (embedded === "1" || !!shop || !!host) {
-    const qs = new URLSearchParams();
-
-    for (const [k, v] of Object.entries(searchParams ?? {})) {
-      if (typeof v === "string") qs.set(k, v);
-      else if (Array.isArray(v) && v[0]) qs.set(k, v[0]);
-    }
-
-    redirect(`/app?${qs.toString()}`);
-  }
-  // 👇 If NOT embedded, render the marketing site
+export default function HomePage() {
   return (
     <main className="bg-base-100 text-base-content">
-
       {/* HEADER */}
       <header className="border-b border-base-300 bg-base-100">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
@@ -272,7 +236,7 @@ export default function Home({
           {/* BEFORE / AFTER (PILLS WITH ARROWS) */}
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-4 text-sm">
             {/* BEFORE */}
-<div className="rounded-xl p-4 border-2 border-error/30">
+<div className="rounded-xl p-4 border-2 border-error/60">
     <p className="text-center text-base sm:text-lg font-semibold mb-4">Before OrderShifter</p>
 
   <div className="space-y-2">
