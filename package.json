@@ -13,6 +13,7 @@
   "dependencies": {
     "@prisma/client": "^5.19.1",
     "bullmq": "^5.66.1",
+    "dotenv": "^17.2.3",
     "ioredis": "^5.8.2",
     "lucide-react": "^0.556.0",
     "next": "16.0.7",

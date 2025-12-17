@@ -1,4 +1,4 @@
-// lib/shopify/client.ts
+// src/lib/shopify/client.ts
 type TokenResponse = { access_token: string; scope: string };
 
 export async function exchangeCodeForToken(opts: {
@@ -46,9 +46,52 @@ export async function registerWebhook(opts: {
     }),
   });
 
-  // If it already exists Shopify may return 422 depending on duplicates; we’ll tolerate non-200 here by reading body.
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Webhook register failed (${opts.topic}): ${res.status} ${text}`);
   }
+}
+
+// -----------------------------
+// Admin REST client (added)
+// -----------------------------
+export type AdminRestClient = {
+  get<T>(pathAndQuery: string): Promise<T>;
+  post<T>(path: string, body: unknown): Promise<T>;
+};
+
+export function getAdminRestClient(opts: {
+  shop: string;
+  accessToken: string;
+  apiVersion?: string; // default 2025-10
+}): AdminRestClient {
+  const version = opts.apiVersion ?? "2025-10";
+
+  async function request<T>(
+    method: "GET" | "POST",
+    pathAndQuery: string,
+    body?: unknown
+  ): Promise<T> {
+    const url = `https://${opts.shop}/admin/api/${version}${pathAndQuery}`;
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": opts.accessToken,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`${method} ${pathAndQuery} failed: ${res.status} ${text}`);
+    }
+
+    return (await res.json()) as T;
+  }
+
+  return {
+    get: <T>(pathAndQuery: string) => request<T>("GET", pathAndQuery),
+    post: <T>(path: string, body: unknown) => request<T>("POST", path, body),
+  };
 }
