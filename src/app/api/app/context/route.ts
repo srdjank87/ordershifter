@@ -38,11 +38,12 @@ export async function GET(req: Request) {
     });
 
     if (!merchant?.tenantId) {
-      return json(
-        { ok: false, error: "Missing tenantId for shop", shop },
-        400
-      );
-    }
+  return json(
+    { ok: false, error: "Missing tenantId for shop", shop, needsInstall: true },
+    400
+  );
+}
+
 
     const tenant = await prisma.tenant.findUnique({
       where: { id: merchant.tenantId },
@@ -61,7 +62,7 @@ export async function GET(req: Request) {
     // Persist shop cookie so future calls don't require query params
     cookieStore.set("os_shop", shop, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       secure: true,
       path: "/",
       maxAge: 60 * 60 * 24 * 30, // 30 days
