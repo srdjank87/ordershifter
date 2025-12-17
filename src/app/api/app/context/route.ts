@@ -1,76 +1,47 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-
-type AppContextOk = {
-  ok: true;
-  shop: string;
-  choices: { tenantId: string; tenantName: string }[];
-  metrics: {
-    exceptionsOpen: number;
-    lastExportAt: string | null;
-    lastOrderSeenAt: string | null;
-    syncHealth: "good" | "warning" | "bad";
-  };
-};
-
-type AppContextErr = {
-  ok: false;
-  error: string;
-};
 
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const shop = url.searchParams.get("shop")?.trim();
+    const shopFromQuery = url.searchParams.get("shop");
 
+    // Next.js (your version): cookies() is async
+    const cookieStore = await cookies();
+    const shopFromCookie = cookieStore.get("os_shop")?.value ?? null;
+
+    const shop = shopFromQuery ?? shopFromCookie;
     if (!shop) {
-      return NextResponse.json<AppContextErr>(
-        { ok: false, error: "Missing shop" },
-        { status: 400 }
+      return NextResponse.json({ ok: false, error: "Missing shop" }, { status: 400 });
+    }
+
+    // Find merchant account by shop domain
+    const merchant = await prisma.merchantAccount.findFirst({
+      where: { shopDomain: shop },
+      select: {
+        id: true,
+        tenantId: true,
+        shopDomain: true,
+        tenant: { select: { id: true, name: true } },
+      },
+    });
+
+    if (!merchant?.tenant) {
+      return NextResponse.json(
+        { ok: false, error: "Merchant not found for this shop" },
+        { status: 404 }
       );
     }
 
-    // Find merchant accounts for this shop
-    const accounts = await prisma.merchantAccount.findMany({
-      where: { shopDomain: shop },
-      select: { tenantId: true },
-    });
-
-    const tenantIds = Array.from(new Set(accounts.map((a) => a.tenantId))).filter(
-      (id): id is string => Boolean(id)
-    );
-
-    const tenants =
-      tenantIds.length > 0
-        ? await prisma.tenant.findMany({
-            where: { id: { in: tenantIds } },
-            select: { id: true, name: true },
-          })
-        : [];
-
-    const choices = tenants.map((t) => ({
-      tenantId: t.id,
-      tenantName: t.name ?? "Your 3PL",
-    }));
-
-    const payload: AppContextOk = {
+    return NextResponse.json({
       ok: true,
-      shop,
-      choices,
-      metrics: {
-        exceptionsOpen: 0,
-        syncHealth: "good",
-        lastExportAt: null,
-        lastOrderSeenAt: null,
-      },
-    };
-
-    return NextResponse.json<AppContextOk>(payload);
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : "Unknown error";
-    return NextResponse.json<AppContextErr>(
-      { ok: false, error: message },
-      { status: 500 }
-    );
+      tenantId: merchant.tenant.id,
+      tenantName: merchant.tenant.name,
+      shop: merchant.shopDomain,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }

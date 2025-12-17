@@ -32,6 +32,39 @@ type ExportRow = {
   } | null;
 };
 
+type UrlCtx = {
+  shop: string | null;
+  host: string | null;
+  embedded: "1" | null;
+};
+
+function getUrlCtxFromWindow(): UrlCtx {
+  if (typeof window === "undefined") return { shop: null, host: null, embedded: null };
+  const sp = new URLSearchParams(window.location.search);
+  const embeddedRaw = sp.get("embedded");
+  return {
+    shop: sp.get("shop"),
+    host: sp.get("host"),
+    embedded: embeddedRaw === "1" ? "1" : null,
+  };
+}
+
+function getStoredCtx(): UrlCtx {
+  if (typeof window === "undefined") return { shop: null, host: null, embedded: null };
+  return {
+    shop: sessionStorage.getItem("os_shop"),
+    host: sessionStorage.getItem("os_host"),
+    embedded: (sessionStorage.getItem("os_embedded") === "1" ? "1" : null) as "1" | null,
+  };
+}
+
+function storeCtx(ctx: UrlCtx) {
+  if (typeof window === "undefined") return;
+  if (ctx.shop) sessionStorage.setItem("os_shop", ctx.shop);
+  if (ctx.host) sessionStorage.setItem("os_host", ctx.host);
+  if (ctx.embedded) sessionStorage.setItem("os_embedded", ctx.embedded);
+}
+
 export default function AppHomeClient() {
   const [loading, setLoading] = useState(true);
   const [ctx, setCtx] = useState<AppCtx | null>(null);
@@ -40,6 +73,15 @@ export default function AppHomeClient() {
   const [exceptions, setExceptions] = useState<ExceptionRow[]>([]);
   const [exportsLog, setExportsLog] = useState<ExportRow[]>([]);
   const [dataError, setDataError] = useState<string | null>(null);
+
+  // Resolve "shop" even if Shopify drops query params after App Bridge navigation
+  const effectiveShop = useMemo(() => {
+    const fromUrl = getUrlCtxFromWindow();
+    if (fromUrl.shop || fromUrl.host || fromUrl.embedded) storeCtx(fromUrl);
+
+    const stored = getStoredCtx();
+    return fromUrl.shop ?? stored.shop ?? null;
+  }, []);
 
   const portalTitle = useMemo(() => {
     if (!ctx?.tenantName) return "Portal";
@@ -55,8 +97,12 @@ export default function AppHomeClient() {
         setCtxError(null);
         setDataError(null);
 
-        // 1) Load context
-        const ctxRes = await fetch("/api/app/context", { cache: "no-store" });
+        // 1) Load context (pass shop if we have it)
+        const ctxUrl = effectiveShop
+          ? `/api/app/context?shop=${encodeURIComponent(effectiveShop)}`
+          : "/api/app/context";
+
+        const ctxRes = await fetch(ctxUrl, { cache: "no-store" });
         const ctxJson = (await ctxRes.json()) as AppCtx | { ok: false; error?: string };
 
         if (!ctxRes.ok || !("ok" in ctxJson) || ctxJson.ok !== true) {
@@ -109,7 +155,7 @@ export default function AppHomeClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [effectiveShop]);
 
   if (loading) {
     return (
@@ -193,9 +239,7 @@ export default function AppHomeClient() {
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body">
             <h2 className="text-base font-semibold">Recent exports</h2>
-            <p className="text-sm opacity-70">
-              A simple record of what was sent to the warehouse and when.
-            </p>
+            <p className="text-sm opacity-70">A simple record of what was sent to the warehouse and when.</p>
 
             <div className="divider my-2" />
 
