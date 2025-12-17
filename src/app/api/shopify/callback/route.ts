@@ -137,52 +137,44 @@ export async function GET(req: Request) {
     );
   }
 
-  // Build redirect target from ctx.returnTo, preserving embedded params (host, embedded=1)
-  const returnToUrl = new URL(ctx.returnTo);
-  const host = returnToUrl.searchParams.get("host") ?? "";
-  const embedded = returnToUrl.searchParams.get("embedded") === "1" ? "1" : null;
+  // Build redirect target from ctx.returnTo (preserve embedded params!)
+const returnTo = new URL(ctx.returnTo);
 
-  const redirectTo = new URL(ctx.returnTo);
-  redirectTo.pathname = "/connect/success";
-  redirectTo.searchParams.set("shop", shop);
-  redirectTo.searchParams.set("account", tenant.slug);
+// Always send user to success page
+returnTo.pathname = "/connect/success";
 
-  const res = NextResponse.redirect(redirectTo.toString(), { status: 302 });
+// REQUIRED params
+returnTo.searchParams.set("shop", shop);
+returnTo.searchParams.set("account", tenant.slug);
 
-  // IMPORTANT: cookies must be usable inside Shopify Admin iframe:
-  // - SameSite=None
-  // - Secure=true on HTTPS
-  const isHttps = appUrl.startsWith("https://");
-  const commonCookie = {
-    path: "/",
-    httpOnly: true,
-    secure: isHttps,
-    sameSite: "none" as const,
-  };
+// Preserve embedded context
+const host = returnTo.searchParams.get("host");
+if (host) {
+  returnTo.searchParams.set("host", host);
+  returnTo.searchParams.set("embedded", "1");
+}
 
-  // ✅ Persist embedded app context for subsequent requests (context/stats/orders/etc)
-  res.cookies.set("os_shop", shop, { ...commonCookie, maxAge: 60 * 60 * 24 * 30 }); // 30d
-  res.cookies.set("os_tenantId", tenant.id, { ...commonCookie, maxAge: 60 * 60 * 24 * 30 });
-  res.cookies.set("os_tenantName", tenant.name ?? tenant.slug, {
-    ...commonCookie,
-    maxAge: 60 * 60 * 24 * 30,
-  });
+const res = NextResponse.redirect(returnTo.toString(), { status: 302 });
 
-  if (host) {
-    res.cookies.set("os_host", host, { ...commonCookie, maxAge: 60 * 60 * 24 * 30 });
-  }
-  if (embedded) {
-    res.cookies.set("os_embedded", "1", { ...commonCookie, maxAge: 60 * 60 * 24 * 30 });
-  }
+// Clear ctx cookie
+res.cookies.set("os_shopify_ctx", "", {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+  maxAge: 0,
+});
 
-  // Clear one-time ctx cookie after successful install
-  res.cookies.set("os_shopify_ctx", "", {
-    path: "/",
-    maxAge: 0,
-    secure: isHttps,
-    sameSite: "none",
-    httpOnly: true,
-  });
+// Persist shop for later context recovery
+res.cookies.set("os_shop", shop, {
+  httpOnly: false,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+  maxAge: 60 * 60 * 24 * 30,
+});
 
-  return res;
+return res;
+
+
 }

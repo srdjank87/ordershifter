@@ -12,8 +12,11 @@ function requireEnv(name: string) {
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
+
   const shop = url.searchParams.get("shop");
-  const account = url.searchParams.get("account") || url.searchParams.get("tenant") || "default";
+  const account = url.searchParams.get("account") || "default";
+  const host = url.searchParams.get("host") || "";
+  const embedded = url.searchParams.get("embedded") || "1";
 
   if (!shop) return NextResponse.json({ error: "Missing ?shop=" }, { status: 400 });
 
@@ -23,25 +26,20 @@ export async function GET(req: Request) {
 
   try {
     apiKey = requireEnv("SHOPIFY_API_KEY");
-    appUrl = requireEnv("SHOPIFY_APP_URL");
+    appUrl = requireEnv("SHOPIFY_APP_URL"); // https://ordershifter.vercel.app
     scopes = requireEnv("SHOPIFY_SCOPES");
   } catch (e) {
     console.error("[install] env error:", e);
-    return NextResponse.json(
-      { error: "Server misconfigured (missing env vars). Check logs." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server misconfigured (missing env vars)." }, { status: 500 });
   }
 
   const tenant = await prisma.tenant.findUnique({ where: { slug: account } });
   if (!tenant) return NextResponse.json({ error: "Unknown 3PL account" }, { status: 404 });
 
-  // Allow an explicit returnTo (handy for embedded flows)
-  const returnToParam = url.searchParams.get("returnTo");
-  const origin = req.headers.get("origin") || `${url.protocol}//${url.host}`;
-  const returnTo = returnToParam ? new URL(returnToParam, origin).toString() : origin;
-
   const state = crypto.randomBytes(16).toString("hex");
+
+  // IMPORTANT: returnTo should preserve embedded context so callback can send them back correctly
+  const returnTo = `${appUrl}/app?embedded=${encodeURIComponent(embedded)}&host=${encodeURIComponent(host)}&shop=${encodeURIComponent(shop)}`;
 
   const ctx = signPayload({
     state,
@@ -59,13 +57,13 @@ export async function GET(req: Request) {
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&state=${encodeURIComponent(state)}`;
 
-  const res = NextResponse.redirect(installUrl);
+  const res = NextResponse.redirect(installUrl, { status: 302 });
 
-  // IMPORTANT: must be SameSite=None for Shopify iframe flows
+  // ✅ critical change: allow cookie in embedded iframe flows
   res.cookies.set("os_shopify_ctx", ctx, {
     httpOnly: true,
-    secure: true,              // Vercel is https
-    sameSite: "none",          // REQUIRED for embedded
+    secure: true,          // must be true for SameSite=None
+    sameSite: "none",      // must be none for iframe OAuth to work reliably
     path: "/",
     maxAge: 60 * 15,
   });
