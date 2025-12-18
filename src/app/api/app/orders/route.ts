@@ -55,3 +55,18 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: message }, { status: 200 });
   }
 }
+
+export function getAdminRestClient(args: { shopDomain: string; accessToken: string }) {
+  const base = `https://${args.shopDomain}/admin/api/2025-10`;
+
+  return {
+    get: (path: string) =>
+      fetch(base + path, {
+        method: "GET",
+        headers: {
+          "X-Shopify-Access-Token": args.accessToken,
+          "Content-Type": "application/json",
+        },
+      }),
+  };
+}
