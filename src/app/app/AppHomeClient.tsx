@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import createApp from "@shopify/app-bridge";
 import { Redirect } from "@shopify/app-bridge/actions";
+import { authenticatedFetch } from "@shopify/app-bridge-utils";
+import type { ClientApplication } from "@shopify/app-bridge";
 
+// ---------- Types ----------
 type ContextOk = {
   ok: true;
   shop: string;
@@ -23,7 +26,6 @@ type ContextNotOk = {
 
 type CtxResponse = ContextOk | ContextNotOk;
 
-// ---- Minimal shapes (adjust if your API returns different fields)
 type StatsResp =
   | {
       ok: true;
@@ -54,9 +56,7 @@ type ExportRow = {
   notes?: string | null;
 };
 
-type ExportsResp =
-  | { ok: true; items: ExportRow[] }
-  | { ok: false; error: string };
+type ExportsResp = { ok: true; items: ExportRow[] } | { ok: false; error: string };
 
 type OrderRow = {
   id: string;
@@ -66,42 +66,29 @@ type OrderRow = {
   createdAt: string;
 };
 
-type OrdersResp =
-  | { ok: true; items: OrderRow[] }
-  | { ok: false; error: string };
+type OrdersResp = { ok: true; items: OrderRow[] } | { ok: false; error: string };
 
-// ---- Fetch helper (returns parsed JSON OR {ok:false,error})
-async function safeJson(url: string): Promise<unknown | { ok: false; error: string }> {
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    const text = await res.text();
-
-    if (!text) {
-      return { ok: false, error: `Empty response (${res.status})` };
-    }
-
-    try {
-      return JSON.parse(text) as unknown;
-    } catch {
-      return { ok: false, error: `Non-JSON response (${res.status})` };
-    }
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Fetch failed";
-    return { ok: false, error: msg };
-  }
-}
-
-// ---- Normalizers (prevent undefined .items / weird shapes from crashing UI)
+// ---------- Helpers ----------
 function asArray<T>(v: unknown): T[] {
   return Array.isArray(v) ? (v as T[]) : [];
 }
 
 function normalizeStats(v: unknown): StatsResp {
   if (typeof v !== "object" || v === null) return { ok: false, error: "Invalid stats response" };
-  const anyV = v as { ok?: unknown; error?: unknown; counts?: unknown; lastExportAt?: unknown; syncHealth?: unknown; message?: unknown };
+  const anyV = v as {
+    ok?: unknown;
+    error?: unknown;
+    counts?: unknown;
+    lastExportAt?: unknown;
+    syncHealth?: unknown;
+    message?: unknown;
+  };
 
   if (anyV.ok === true) {
-    const counts = (typeof anyV.counts === "object" && anyV.counts !== null ? (anyV.counts as Record<string, number>) : {}) as Record<string, number>;
+    const counts =
+      typeof anyV.counts === "object" && anyV.counts !== null
+        ? (anyV.counts as Record<string, number>)
+        : {};
     return {
       ok: true,
       counts,
@@ -111,7 +98,10 @@ function normalizeStats(v: unknown): StatsResp {
     };
   }
 
-  return { ok: false, error: typeof anyV.error === "string" ? (anyV.error as string) : "Stats request failed" };
+  return {
+    ok: false,
+    error: typeof anyV.error === "string" ? (anyV.error as string) : "Stats request failed",
+  };
 }
 
 function normalizeExceptions(v: unknown): ExceptionsResp {
@@ -141,12 +131,10 @@ function normalizeOrders(v: unknown): OrdersResp {
 export default function AppHomeClient() {
   const sp = useSearchParams();
 
-  // Raw URL params (may be missing on subsequent embedded loads)
   const shopFromUrl = sp.get("shop") ?? "";
   const hostFromUrl = sp.get("host") ?? "";
   const embeddedFromUrl = sp.get("embedded") === "1";
 
-  // Fallbacks from sessionStorage
   const shop = useMemo(() => {
     if (shopFromUrl) return shopFromUrl;
     if (typeof window === "undefined") return "";
@@ -165,15 +153,6 @@ export default function AppHomeClient() {
     return sessionStorage.getItem("os_embedded") === "1";
   }, [embeddedFromUrl]);
 
-  const [ctx, setCtx] = useState<ContextOk | null>(null);
-  const [ctxError, setCtxError] = useState<string>("");
-
-  // Data states
-  const [stats, setStats] = useState<StatsResp | null>(null);
-  const [exceptions, setExceptions] = useState<ExceptionsResp | null>(null);
-  const [exportsLog, setExportsLog] = useState<ExportsResp | null>(null);
-  const [orders, setOrders] = useState<OrdersResp | null>(null);
-
   // Persist best-known context
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -182,7 +161,40 @@ export default function AppHomeClient() {
     if (embeddedFromUrl) sessionStorage.setItem("os_embedded", "1");
   }, [hostFromUrl, shopFromUrl, embeddedFromUrl]);
 
-  // ---- Load app context (and run install if needed)
+  // Create a real ClientApplication instance when embedded
+  const apiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY ?? "";
+  const app: ClientApplication | null = useMemo(() => {
+    if (!embedded) return null;
+    if (!apiKey || !host) return null;
+    return createApp({ apiKey, host, forceRedirect: true });
+  }, [embedded, apiKey, host]);
+
+  // Authenticated fetch when embedded (adds session token header)
+  const afetch = useMemo(() => {
+    if (!app) return null;
+    return authenticatedFetch(app);
+  }, [app]);
+
+  const [ctx, setCtx] = useState<ContextOk | null>(null);
+  const [ctxError, setCtxError] = useState<string>("");
+
+  const [stats, setStats] = useState<StatsResp | null>(null);
+  const [exceptions, setExceptions] = useState<ExceptionsResp | null>(null);
+  const [exportsLog, setExportsLog] = useState<ExportsResp | null>(null);
+  const [orders, setOrders] = useState<OrdersResp | null>(null);
+
+  async function fetchJson(url: string): Promise<unknown> {
+    const res = afetch ? await afetch(url) : await fetch(url, { cache: "no-store" });
+    const text = await res.text();
+    if (!text) return { ok: false, error: `Empty response (${res.status})` };
+    try {
+      return JSON.parse(text) as unknown;
+    } catch {
+      return { ok: false, error: `Non-JSON response (${res.status})` };
+    }
+  }
+
+  // Load context (+ kick install if needed)
   useEffect(() => {
     let alive = true;
 
@@ -193,31 +205,15 @@ export default function AppHomeClient() {
       if (shop) qs.set("shop", shop);
       if (host) qs.set("host", host);
 
-      const res = await fetch(`/api/app/context?${qs.toString()}`, {
-        cache: "no-store",
-      });
-
-      const text = await res.text();
-      let data: CtxResponse;
-      try {
-        data = JSON.parse(text) as CtxResponse;
-      } catch {
-        throw new Error("Context endpoint returned non-JSON response.");
-      }
+      const raw = await fetchJson(`/api/app/context?${qs.toString()}`);
+      const data = raw as CtxResponse;
 
       if (!data.ok && data.code === "NEEDS_INSTALL") {
-        const apiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY;
-
-        if (embedded && apiKey && (data.host || host) && data.shop) {
-          const app = createApp({
-            apiKey,
-            host: data.host || host,
-            forceRedirect: true,
-          });
-
+        // Embedded install must use App Bridge redirect
+        if (embedded && app && data.shop) {
           const redirect = Redirect.create(app);
-
           const origin = window.location.origin;
+
           const installUrl =
             `${origin}/api/shopify/install?shop=${encodeURIComponent(data.shop)}` +
             `&host=${encodeURIComponent(data.host || host)}` +
@@ -227,9 +223,8 @@ export default function AppHomeClient() {
           return;
         }
 
-        window.location.href = `/api/shopify/install?shop=${encodeURIComponent(
-          data.shop
-        )}`;
+        // Non-embedded fallback
+        window.location.href = `/api/shopify/install?shop=${encodeURIComponent(data.shop)}`;
         return;
       }
 
@@ -251,9 +246,9 @@ export default function AppHomeClient() {
     return () => {
       alive = false;
     };
-  }, [shop, host, embedded]);
+  }, [shop, host, embedded, app, afetch]);
 
-  // ---- Once context is loaded, fetch dashboard data
+  // Once context is loaded, fetch portal data
   useEffect(() => {
     let alive = true;
     if (!ctx?.shop) return;
@@ -262,10 +257,10 @@ export default function AppHomeClient() {
 
     const loadAll = async () => {
       const [sRaw, exRaw, expRaw, oRaw] = await Promise.all([
-        safeJson(`/api/app/stats?${qs}`),
-        safeJson(`/api/app/exceptions?${qs}`),
-        safeJson(`/api/app/exports?${qs}`),
-        safeJson(`/api/app/orders?${qs}`),
+        fetchJson(`/api/app/stats?${qs}`),
+        fetchJson(`/api/app/exceptions?${qs}`),
+        fetchJson(`/api/app/exports?${qs}`),
+        fetchJson(`/api/app/orders?${qs}`),
       ]);
 
       if (!alive) return;
@@ -281,9 +276,9 @@ export default function AppHomeClient() {
     return () => {
       alive = false;
     };
-  }, [ctx?.shop]);
+  }, [ctx?.shop, afetch]);
 
-  // ---- UI states
+  // UI
   if (ctxError) {
     return (
       <div className="p-6">
@@ -302,8 +297,7 @@ export default function AppHomeClient() {
     );
   }
 
-  const attentionCount =
-    exceptions && exceptions.ok ? exceptions.items.length : null;
+  const attentionCount = exceptions && exceptions.ok ? exceptions.items.length : null;
 
   return (
     <div className="p-6 space-y-5">
@@ -312,12 +306,10 @@ export default function AppHomeClient() {
         <div className="space-y-1">
           <h1 className="text-xl font-semibold">{ctx.tenantName} Portal</h1>
           <p className="text-sm opacity-70">
-            Order status, issues that need action, and recent exports — all in one
-            place.
+            Order status, issues that need action, and recent exports — all in one place.
           </p>
         </div>
 
-        {/* Lightweight merchant-facing status pills */}
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
             <div className="opacity-70 text-xs">Store</div>
@@ -326,16 +318,13 @@ export default function AppHomeClient() {
 
           <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
             <div className="opacity-70 text-xs">Needs attention</div>
-            <div className="font-semibold">
-              {attentionCount === null ? "—" : attentionCount}
-            </div>
+            <div className="font-semibold">{attentionCount === null ? "—" : attentionCount}</div>
           </div>
         </div>
       </div>
 
       {/* Top grid */}
       <div className="grid lg:grid-cols-3 gap-4">
-        {/* Sync health */}
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body space-y-2">
             <h2 className="text-base font-semibold">Sync Health</h2>
@@ -346,24 +335,14 @@ export default function AppHomeClient() {
             ) : (
               <div className="space-y-1">
                 <p className="text-sm opacity-80">
-                  Status:{" "}
-                  <span className="font-semibold">
-                    {stats.syncHealth ?? "OK"}
-                  </span>
+                  Status: <span className="font-semibold">{stats.syncHealth ?? "OK"}</span>
                 </p>
-                {stats.message ? (
-                  <p className="text-sm opacity-70">{stats.message}</p>
-                ) : (
-                  <p className="text-sm opacity-70">
-                    Everything looks normal right now.
-                  </p>
-                )}
+                <p className="text-sm opacity-70">{stats.message ?? "Everything looks normal right now."}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Orders in progress */}
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body space-y-2">
             <h2 className="text-base font-semibold">Orders in Progress</h2>
@@ -374,14 +353,9 @@ export default function AppHomeClient() {
             ) : (
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {["PENDING", "HELD", "READY", "EXPORTED", "ERROR"].map((k) => (
-                  <div
-                    key={k}
-                    className="rounded-xl bg-base-100 border border-base-300 px-3 py-2"
-                  >
+                  <div key={k} className="rounded-xl bg-base-100 border border-base-300 px-3 py-2">
                     <div className="text-xs opacity-70">{k}</div>
-                    <div className="text-lg font-semibold">
-                      {stats.counts?.[k] ?? 0}
-                    </div>
+                    <div className="text-lg font-semibold">{stats.counts?.[k] ?? 0}</div>
                   </div>
                 ))}
               </div>
@@ -389,7 +363,6 @@ export default function AppHomeClient() {
           </div>
         </div>
 
-        {/* Last export */}
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body space-y-2">
             <h2 className="text-base font-semibold">Last Export</h2>
@@ -400,13 +373,9 @@ export default function AppHomeClient() {
             ) : (
               <div className="space-y-1 text-sm">
                 <p className="opacity-80">
-                  {stats.lastExportAt
-                    ? new Date(stats.lastExportAt).toLocaleString()
-                    : "No exports yet."}
+                  {stats.lastExportAt ? new Date(stats.lastExportAt).toLocaleString() : "No exports yet."}
                 </p>
-                <p className="opacity-70">
-                  You can review export history and any failed runs below.
-                </p>
+                <p className="opacity-70">You can review export history and any failed runs below.</p>
               </div>
             )}
           </div>
@@ -415,14 +384,11 @@ export default function AppHomeClient() {
 
       {/* Middle grid */}
       <div className="grid lg:grid-cols-2 gap-4">
-        {/* Orders needing attention */}
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold">Orders Needing Attention</h2>
-              <span className="text-xs opacity-70">
-                {exceptions && exceptions.ok ? exceptions.items.length : "—"} items
-              </span>
+              <span className="text-xs opacity-70">{exceptions && exceptions.ok ? exceptions.items.length : "—"} items</span>
             </div>
 
             {!exceptions ? (
@@ -430,9 +396,7 @@ export default function AppHomeClient() {
             ) : !exceptions.ok ? (
               <p className="text-sm opacity-80">{exceptions.error}</p>
             ) : exceptions.items.length === 0 ? (
-              <p className="text-sm opacity-70">
-                Nothing needs action right now.
-              </p>
+              <p className="text-sm opacity-70">Nothing needs action right now.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="table table-sm">
@@ -450,9 +414,7 @@ export default function AppHomeClient() {
                         <td className="font-medium">{x.orderName ?? x.code}</td>
                         <td className="max-w-[340px] truncate">{x.message}</td>
                         <td>{x.status}</td>
-                        <td className="hidden md:table-cell">
-                          {new Date(x.createdAt).toLocaleString()}
-                        </td>
+                        <td className="hidden md:table-cell">{new Date(x.createdAt).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -462,7 +424,6 @@ export default function AppHomeClient() {
           </div>
         </div>
 
-        {/* Recent exports */}
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body space-y-3">
             <h2 className="text-base font-semibold">Recent Exports</h2>
@@ -488,9 +449,7 @@ export default function AppHomeClient() {
                       <tr key={e.id}>
                         <td>{new Date(e.createdAt).toLocaleString()}</td>
                         <td className="font-medium">{e.status}</td>
-                        <td className="hidden md:table-cell opacity-80">
-                          {e.notes ?? "—"}
-                        </td>
+                        <td className="hidden md:table-cell opacity-80">{e.notes ?? "—"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -511,9 +470,7 @@ export default function AppHomeClient() {
           ) : !orders.ok ? (
             <p className="text-sm opacity-80">{orders.error}</p>
           ) : orders.items.length === 0 ? (
-            <p className="text-sm opacity-70">
-              No orders have been synced yet.
-            </p>
+            <p className="text-sm opacity-70">No orders have been synced yet.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="table table-sm">
@@ -529,9 +486,7 @@ export default function AppHomeClient() {
                     <tr key={o.id}>
                       <td className="font-medium">{o.shopifyName}</td>
                       <td>{o.state}</td>
-                      <td className="hidden md:table-cell">
-                        {new Date(o.createdAt).toLocaleString()}
-                      </td>
+                      <td className="hidden md:table-cell">{new Date(o.createdAt).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -541,7 +496,6 @@ export default function AppHomeClient() {
         </div>
       </div>
 
-      {/* Note for later: 3PL dropdown */}
       <div className="text-xs opacity-60">
         Note: later we’ll add a dropdown here if a merchant uses multiple 3PLs.
       </div>

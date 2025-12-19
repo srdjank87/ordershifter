@@ -1,46 +1,31 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { requireShopifyAuth } from "@/lib/shopify/requireShopifyAuth";
 
 export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const shopFromQuery = url.searchParams.get("shop") || "";
-  const hostFromQuery = url.searchParams.get("host") || "";
+  try {
+    const { shop } = await requireShopifyAuth(req);
 
-  const cookieStore = await cookies();
-  const shopFromCookie = cookieStore.get("os_shop")?.value || "";
-  const hostFromCookie = cookieStore.get("os_host")?.value || "";
-
-  const shop = shopFromQuery || shopFromCookie;
-  const host = hostFromQuery || hostFromCookie;
-
-  if (!shop) {
-    return NextResponse.json(
-      { ok: false as const, code: "MISSING_SHOP" as const, shop: "", host: "", error: "Missing shop" },
-      { status: 400 }
-    );
-  }
-
-  const merchant = await prisma.merchantAccount.findFirst({
-    where: { shopDomain: shop },
-    include: { tenant: true },
-  });
-
-  if (!merchant?.tenantId) {
-    return NextResponse.json({
-      ok: false as const,
-      code: "NEEDS_INSTALL" as const,
-      shop,
-      host,
-      error: "Merchant not connected (no tenantId). Run install flow.",
+    const merchant = await prisma.merchantAccount.findUnique({
+      where: { shopDomain: shop },
+      select: { tenantId: true, tenant: { select: { name: true } } },
     });
-  }
 
-  return NextResponse.json({
-    ok: true as const,
-    shop,
-    host,
-    tenantId: merchant.tenantId,
-    tenantName: merchant.tenant?.name ?? "Portal",
-  });
+    if (!merchant?.tenantId) {
+      return NextResponse.json(
+        { ok: false, error: "Missing tenantId for shop (merchant not connected)" },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      shop,
+      tenantId: merchant.tenantId,
+      tenantName: merchant.tenant?.name ?? "3PL",
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Context failed";
+    return NextResponse.json({ ok: false, error: msg }, { status: 401 });
+  }
 }

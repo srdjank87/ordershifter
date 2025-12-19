@@ -1,63 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireShopifyAuth } from "@/lib/shopify/requireShopifyAuth";
 
-// GET /api/app/exceptions?shop=xxx.myshopify.com
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
+    const { shop } = await requireShopifyAuth(req);
 
-    // prefer query param, fallback to cookie
-    const shop =
-      url.searchParams.get("shop") ??
-      req.cookies.get("os_shop")?.value ??
-      null;
-
-    if (!shop) {
-      return NextResponse.json(
-        { ok: false, error: "Missing shop" },
-        { status: 400 }
-      );
-    }
-
-    // Resolve merchant + tenant from the shop domain
     const merchant = await prisma.merchantAccount.findUnique({
       where: { shopDomain: shop },
-      select: { id: true, tenantId: true },
+      select: { id: true },
     });
 
-    if (!merchant?.tenantId) {
-      return NextResponse.json(
-        { ok: false, error: "Missing tenantId (merchant not linked)" },
-        { status: 400 }
-      );
+    if (!merchant) {
+      return NextResponse.json({ ok: true, items: [] });
     }
 
-    const rows = await prisma.orderException.findMany({
-      where: {
-        tenantId: merchant.tenantId,
-        merchantId: merchant.id,
-        status: "OPEN", // adjust if your enum differs
-      },
+    const items = await prisma.orderException.findMany({
+      where: { merchantId: merchant.id, status: "OPEN" },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: 25,
       select: {
         id: true,
         code: true,
         message: true,
         status: true,
         createdAt: true,
-        orderId: true,
       },
     });
 
     return NextResponse.json({
       ok: true,
-      shop,
-      tenantId: merchant.tenantId,
-      exceptions: rows,
+      items: items.map((x) => ({
+        ...x,
+        createdAt: x.createdAt.toISOString(),
+      })),
     });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Unknown error";
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Exceptions failed";
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }
