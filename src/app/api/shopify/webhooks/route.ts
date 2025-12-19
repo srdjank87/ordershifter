@@ -1,58 +1,114 @@
-// app/api/shopify/webhooks/route.ts
+// src/app/api/shopify/webhooks/route.ts
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { verifyShopifyWebhookHmac } from "@/lib/shopify/hmac";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type ShopifyWebhookTopic =
+  | "orders/create"
+  | "orders/updated"
+  | "orders/cancelled"
+  | "app/uninstalled"
+  | "shop/redact"
+  | "customers/redact"
+  | "customers/data_request"
+  | string;
+
+function toInputJson(value: unknown): Prisma.InputJsonValue {
+  // Prisma JSON columns accept InputJsonValue (string | number | boolean | object | array | null)
+  // If value is undefined, store an empty object (or null if you prefer).
+  if (value === undefined) return {} as Prisma.InputJsonValue;
+  return value as Prisma.InputJsonValue;
+}
+
 export async function POST(req: Request) {
-  const apiSecret = process.env.SHOPIFY_API_SECRET!;
-  const topic = req.headers.get("x-shopify-topic") || "";
+  const apiSecret = process.env.SHOPIFY_API_SECRET;
+  if (!apiSecret) {
+    return NextResponse.json({ error: "Missing SHOPIFY_API_SECRET" }, { status: 500 });
+  }
+
+  const topic = (req.headers.get("x-shopify-topic") || "") as ShopifyWebhookTopic;
   const shop = req.headers.get("x-shopify-shop-domain") || "";
   const hmac = req.headers.get("x-shopify-hmac-sha256");
 
+  // Verify against RAW body
   const rawBody = await req.text();
 
   if (!verifyShopifyWebhookHmac(rawBody, hmac, apiSecret)) {
     return NextResponse.json({ error: "Invalid webhook HMAC" }, { status: 401 });
   }
 
-  if (!shop) return NextResponse.json({ error: "Missing shop domain header" }, { status: 400 });
+  if (!shop) {
+    return NextResponse.json({ error: "Missing shop domain header" }, { status: 400 });
+  }
 
-  // Find merchant (shop -> merchant account)
   const merchant = await prisma.merchantAccount.findFirst({
     where: { shopDomain: shop },
     include: { tenant: { include: { settings: true } } },
   });
 
+  // Compliance topics can be sent even when we don't recognize the shop yet.
+  // Always ACK 200 to avoid retries.
   if (!merchant) {
-    // Return 200 to avoid Shopify retries when unknown store hits us
     return NextResponse.json({ ok: true, ignored: true });
+  }
+
+  // ---- Compliance + uninstall handling ----
+  if (topic === "shop/redact" || topic === "app/uninstalled") {
+    const merchantId = merchant.id;
+
+    await prisma.orderException.deleteMany({ where: { merchantId } }).catch(() => null);
+    await prisma.exportLog.deleteMany({ where: { merchantId } }).catch(() => null);
+    await prisma.shopifyOrder.deleteMany({ where: { merchantId } }).catch(() => null);
+    await prisma.merchantAccount.deleteMany({ where: { id: merchantId } }).catch(() => null);
+
+    return NextResponse.json({ ok: true });
+  }
+
+  if (topic === "customers/redact" || topic === "customers/data_request") {
+    // MVP: we don't persist separate customer records; nothing to redact/return.
+    return NextResponse.json({ ok: true });
+  }
+
+  // ---- Order topics (optional) ----
+  // You can keep these enabled; they’ll still ACK even if payload is limited before approval.
+  let payload: unknown = null;
+  try {
+    payload = rawBody ? (JSON.parse(rawBody) as unknown) : null;
+  } catch {
+    payload = null;
   }
 
   const tenantId = merchant.tenantId;
   const delayHours = merchant.tenant.settings?.delayHours ?? 6;
 
-  const payload = JSON.parse(rawBody);
+  const p = (payload ?? null) as Record<string, unknown> | null;
+  const idVal = p?.id;
+  const nameVal = p?.name;
+  const createdAtVal = p?.created_at;
 
-  // Shopify order id can be numeric; store as string for safety
-  const shopifyOrderId = String(payload.id ?? "");
-  const shopifyName = payload.name ? String(payload.name) : null;
+  const shopifyOrderId =
+    typeof idVal === "number" || typeof idVal === "string" ? String(idVal) : "";
+  const shopifyName = typeof nameVal === "string" ? nameVal : null;
+  const createdAtShopify = typeof createdAtVal === "string" ? new Date(createdAtVal) : null;
 
-  // created_at is ISO string
-  const createdAtShopify = payload.created_at ? new Date(payload.created_at) : null;
-
-  // Compute readyAt = createdAtShopify + delay window (fallback to now)
   const baseTime = createdAtShopify ?? new Date();
   const readyAt = new Date(baseTime.getTime() + delayHours * 60 * 60 * 1000);
 
-  // Handle topics
-  if (topic === "orders/create" || topic === "orders/updated") {
+  const jsonPayload: Prisma.InputJsonValue = toInputJson(payload ?? {});
+
+  if ((topic === "orders/create" || topic === "orders/updated") && shopifyOrderId) {
     await prisma.shopifyOrder.upsert({
-      where: { merchantId_shopifyOrderId: { merchantId: merchant.id, shopifyOrderId } },
+      where: {
+        merchantId_shopifyOrderId: { merchantId: merchant.id, shopifyOrderId },
+      },
       update: {
-        payload,
+        payload: jsonPayload,
         shopifyName,
         createdAtShopify,
-        // Do NOT overwrite readyAt if it already passed? For MVP we keep latest computed.
         readyAt,
       },
       create: {
@@ -61,22 +117,28 @@ export async function POST(req: Request) {
         shopifyOrderId,
         shopifyName,
         createdAtShopify,
-        payload,
-        state: "READY",
+        payload: jsonPayload,
+        state: "PENDING",
         readyAt,
       },
     });
-  } else if (topic === "orders/cancelled") {
-    // MVP: mark as ERROR or simply store payload; later you can add CANCELLED state.
+
+    return NextResponse.json({ ok: true });
+  }
+
+  if (topic === "orders/cancelled" && shopifyOrderId) {
     await prisma.shopifyOrder.updateMany({
       where: { merchantId: merchant.id, shopifyOrderId },
       data: {
-        payload,
+        payload: jsonPayload,
         lastError: "Order cancelled in Shopify",
         state: "ERROR",
       },
     });
+
+    return NextResponse.json({ ok: true });
   }
 
+  // Unknown topic: acknowledge
   return NextResponse.json({ ok: true });
 }

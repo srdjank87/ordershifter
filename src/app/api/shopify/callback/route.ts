@@ -1,181 +1,186 @@
 // src/app/api/shopify/callback/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyPayload } from "@/lib/shopify/signing";
-import { verifyShopifyCallbackHmac } from "@/lib/shopify/hmac";
-import { exchangeCodeForToken, registerWebhook } from "@/lib/shopify/client";
+import crypto from "crypto";
 
-type ShopifyCtx = {
-  state: string;
-  tenantSlug: string;
-  returnTo: string; // should include embedded context (host, embedded=1) if embedded install
-  iat: number;
-};
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-function getCookieValue(cookieHeader: string, name: string) {
-  const part = cookieHeader
-    .split(";")
-    .map((s) => s.trim())
-    .find((c) => c.startsWith(`${name}=`));
-  return part ? part.split("=").slice(1).join("=") : null;
+// If you already have a shared helper for Admin REST calls, use it.
+// Otherwise keep this minimal inline fetch.
+async function shopifyRest(
+  shop: string,
+  accessToken: string,
+  path: string,
+  body?: unknown,
+) {
+  const apiVersion = process.env.SHOPIFY_REST_API_VERSION || "2025-10";
+  const url = `https://${shop}/admin/api/${apiVersion}${path}`;
+
+  const res = await fetch(url, {
+    method: body ? "POST" : "GET",
+    headers: {
+      "X-Shopify-Access-Token": accessToken,
+      "Content-Type": "application/json",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const text = await res.text();
+  if (!res.ok) throw new Error(`${res.status} ${text}`);
+  return text ? JSON.parse(text) : {};
+}
+
+function verifyOAuthHmac(params: URLSearchParams, apiSecret: string) {
+  // Shopify OAuth HMAC verification
+  const hmac = params.get("hmac");
+  if (!hmac) return false;
+
+  const message = Array.from(params.entries())
+    .filter(([k]) => k !== "hmac" && k !== "signature")
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}=${v}`)
+    .join("&");
+
+  const digest = crypto.createHmac("sha256", apiSecret).update(message).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(digest, "utf8"), Buffer.from(hmac, "utf8"));
 }
 
 export async function GET(req: Request) {
-  console.log("✅ CALLBACK HIT", { url: req.url });
-
-  const url = new URL(req.url);
-
   const apiKey = process.env.SHOPIFY_API_KEY;
   const apiSecret = process.env.SHOPIFY_API_SECRET;
   const appUrl = process.env.SHOPIFY_APP_URL;
 
   if (!apiKey || !apiSecret || !appUrl) {
     return NextResponse.json(
-      { error: "Missing SHOPIFY_API_KEY / SHOPIFY_API_SECRET / SHOPIFY_APP_URL" },
-      { status: 500 }
+      { error: "Missing SHOPIFY env vars (SHOPIFY_API_KEY/SECRET/APP_URL)" },
+      { status: 500 },
     );
   }
 
-  const shop = url.searchParams.get("shop");
-  const code = url.searchParams.get("code");
-  const state = url.searchParams.get("state");
+  const url = new URL(req.url);
+  const sp = url.searchParams;
+
+  const shop = sp.get("shop");
+  const code = sp.get("code");
+  const state = sp.get("state");
 
   if (!shop || !code || !state) {
     return NextResponse.json({ error: "Missing shop/code/state" }, { status: 400 });
   }
 
-  // Validate Shopify callback HMAC
-  if (!verifyShopifyCallbackHmac(url, apiSecret)) {
-    return NextResponse.json({ error: "Invalid HMAC" }, { status: 401 });
+  // Basic shop validation
+  if (!shop.endsWith(".myshopify.com")) {
+    return NextResponse.json({ error: "Invalid shop domain" }, { status: 400 });
   }
 
-  // Read signed ctx cookie created during /api/shopify/install
+  // Verify HMAC from Shopify
+  if (!verifyOAuthHmac(sp, apiSecret)) {
+    return NextResponse.json({ error: "Invalid OAuth HMAC" }, { status: 401 });
+  }
+
+  // Verify state (nonce)
   const cookieHeader = req.headers.get("cookie") || "";
-  const rawCtx = getCookieValue(cookieHeader, "os_shopify_ctx");
+  const stateCookie = cookieHeader
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith("os_state="))
+    ?.split("=")[1];
 
-  if (!rawCtx) {
-    return NextResponse.json({ error: "Missing context cookie" }, { status: 400 });
-  }
-
-  const ctx = verifyPayload<ShopifyCtx>(decodeURIComponent(rawCtx));
-  if (!ctx) {
-    return NextResponse.json({ error: "Invalid context cookie" }, { status: 400 });
-  }
-
-  if (ctx.state !== state) {
-    return NextResponse.json({ error: "State mismatch" }, { status: 401 });
-  }
-
-  const tenant = await prisma.tenant.findUnique({
-    where: { slug: ctx.tenantSlug },
-    include: { settings: true },
-  });
-
-  if (!tenant) {
-    return NextResponse.json({ error: "Unknown 3PL account" }, { status: 404 });
+  if (!stateCookie || stateCookie !== state) {
+    return NextResponse.json({ error: "Invalid state" }, { status: 401 });
   }
 
   // Exchange code for access token
-  const token = await exchangeCodeForToken({
-    shop,
-    code,
-    apiKey,
-    apiSecret,
+  const tokenRes = await fetch(`https://${shop}/admin/oauth/access_token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: apiKey,
+      client_secret: apiSecret,
+      code,
+    }),
   });
 
-  // Upsert MerchantAccount
-  await prisma.merchantAccount.upsert({
-    where: { tenantId_shopDomain: { tenantId: tenant.id, shopDomain: shop } },
+  const tokenJson = (await tokenRes.json()) as { access_token?: string; scope?: string; error?: string };
+
+  if (!tokenRes.ok || !tokenJson.access_token) {
+    return NextResponse.json(
+      { error: `Token exchange failed: ${JSON.stringify(tokenJson)}` },
+      { status: 500 },
+    );
+  }
+
+  const accessToken = tokenJson.access_token;
+  const scope = tokenJson.scope || null;
+
+  // Ensure we have a tenant (default for now)
+  const tenant = await prisma.tenant.findFirst();
+  if (!tenant) {
+    return NextResponse.json({ error: "No tenant found" }, { status: 500 });
+  }
+
+  // Upsert merchant account
+  const merchant = await prisma.merchantAccount.upsert({
+    where: { shopDomain: shop },
     update: {
-      status: "INSTALLED",
-      accessToken: token.access_token,
-      scope: token.scope,
+      tenantId: tenant.id,
+      accessToken,
+      scope,
       installedAt: new Date(),
+      status: "ACTIVE",
     },
     create: {
       tenantId: tenant.id,
       shopDomain: shop,
-      status: "INSTALLED",
-      accessToken: token.access_token,
-      scope: token.scope,
+      accessToken,
+      scope,
       installedAt: new Date(),
+      status: "ACTIVE",
     },
   });
 
-  console.log("✅ MERCHANT UPSERT", { shop, tenantId: tenant.id });
-
-  // Register webhooks (non-fatal)
+  // Register mandatory compliance webhooks (+ uninstalled)
+  // Using REST Admin API endpoint: /webhooks.json
   const webhookAddress = `${appUrl}/api/shopify/webhooks`;
 
-  const topics: string[] = ["app/uninstalled", "shop/update"];
-  if (process.env.SHOPIFY_ENABLE_ORDER_WEBHOOKS === "true") {
-    topics.push("orders/create", "orders/updated", "orders/cancelled");
+  const topicsToRegister = [
+    "app/uninstalled",
+    "shop/redact",
+    "customers/redact",
+    "customers/data_request",
+    // Enable these later once approved (optional):
+    // "orders/create",
+    // "orders/updated",
+    // "orders/cancelled",
+  ] as const;
+
+  for (const topic of topicsToRegister) {
+    try {
+      await shopifyRest(shop, accessToken, "/webhooks.json", {
+        webhook: {
+          topic,
+          address: webhookAddress,
+          format: "json",
+        },
+      });
+    } catch {
+      // Ignore duplicates / already registered / etc.
+      // (Shopify may return 422 if already exists, which is fine.)
+    }
   }
 
-  const results = await Promise.allSettled(
-    topics.map((topic) =>
-      registerWebhook({
-        shop,
-        accessToken: token.access_token,
-        topic,
-        address: webhookAddress,
-      })
-    )
-  );
+  // Set cookies so embedded app can discover context
+  const res = NextResponse.redirect(`${appUrl}/connect/success?shop=${encodeURIComponent(shop)}`);
 
-  const failures = results
-    .map((r, i) => ({ r, topic: topics[i] }))
-    .filter((x) => x.r.status === "rejected");
+  // Clear state cookie
+  res.cookies.set("os_state", "", { path: "/", maxAge: 0 });
 
-  if (failures.length) {
-    console.warn(
-      "[shopify] webhook registration failures:",
-      failures.map((f) => ({
-        topic: f.topic,
-        error: String((f.r as PromiseRejectedResult).reason),
-      }))
-    );
-  }
+  // Helpful cookies for your app context
+  res.cookies.set("os_shop", shop, { path: "/", httpOnly: false, sameSite: "lax", secure: true });
 
-  // Build redirect target from ctx.returnTo (preserve embedded params!)
-const returnTo = new URL(ctx.returnTo);
+  // Keep tenantId in a cookie so context route can resolve fast (optional)
+  res.cookies.set("os_tenantId", merchant.tenantId, { path: "/", httpOnly: false, sameSite: "lax", secure: true });
 
-// Always send user to success page
-returnTo.pathname = "/connect/success";
-
-// REQUIRED params
-returnTo.searchParams.set("shop", shop);
-returnTo.searchParams.set("account", tenant.slug);
-
-// Preserve embedded context
-const host = returnTo.searchParams.get("host");
-if (host) {
-  returnTo.searchParams.set("host", host);
-  returnTo.searchParams.set("embedded", "1");
-}
-
-const res = NextResponse.redirect(returnTo.toString(), { status: 302 });
-
-// Clear ctx cookie
-res.cookies.set("os_shopify_ctx", "", {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none",
-  path: "/",
-  maxAge: 0,
-});
-
-
-// Persist shop for later context recovery
-res.cookies.set("os_shop", shop, {
-  httpOnly: false,
-  secure: true,
-  sameSite: "none",
-  path: "/",
-  maxAge: 60 * 60 * 24 * 30,
-});
-
-return res;
-
-
+  return res;
 }
