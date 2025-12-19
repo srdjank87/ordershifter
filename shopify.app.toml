@@ -1,0 +1,14 @@
+[webhooks]
+api_version = "2025-10"
+
+[[webhooks.subscriptions]]
+topics = ["customers/data_request"]
+uri = "/api/shopify/webhooks"
+
+[[webhooks.subscriptions]]
+topics = ["customers/redact"]
+uri = "/api/shopify/webhooks"
+
+[[webhooks.subscriptions]]
+topics = ["shop/redact"]
+uri = "/api/shopify/webhooks"
