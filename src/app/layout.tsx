@@ -31,11 +31,8 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light">
 <head>
-        {/* Required for Shopify embedded admin runtime checks / web vitals */}
-        <Script
-          src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
-          strategy="beforeInteractive"
-        />
+        {/* Shopify embedded admin runtime checks expect a literal script tag */}
+        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" defer />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
