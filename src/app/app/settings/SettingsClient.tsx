@@ -2,163 +2,180 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import createApp from "@shopify/app-bridge";
+
+import createApp, { type ClientApplication } from "@shopify/app-bridge";
 import { authenticatedFetch } from "@shopify/app-bridge/utilities";
+
+type ErrDTO = { ok: false; error: string; code?: string };
 
 type SettingsDTO = {
   ok: true;
   tenantId: string;
   tenantName: string;
+  tenantLogoUrl: string | null;
   demoMode: boolean;
-  portalTitle: string | null;
-  portalLogoUrl: string | null;
-  delayHours: number | null;
-  exportFrequencyMinutes: number | null;
+  delayHours: number;
+  exportFrequencyMinutes: number;
 };
 
-type ErrDTO = { ok: false; error: string };
+type SaveDTO = { ok: true } & Record<string, never>;
 
-function first(p: string | string[] | null | undefined) {
-  if (!p) return "";
-  return Array.isArray(p) ? p[0] ?? "" : p;
+function isErrDTO(v: unknown): v is ErrDTO {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    "ok" in v &&
+    (v as { ok: unknown }).ok === false &&
+    "error" in v &&
+    typeof (v as { error: unknown }).error === "string"
+  );
 }
 
-function safeGetSession(key: string) {
+function isSettingsDTO(v: unknown): v is SettingsDTO {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    o.ok === true &&
+    typeof o.tenantId === "string" &&
+    typeof o.tenantName === "string" &&
+    (o.tenantLogoUrl === null || typeof o.tenantLogoUrl === "string") &&
+    typeof o.demoMode === "boolean" &&
+    typeof o.delayHours === "number" &&
+    typeof o.exportFrequencyMinutes === "number"
+  );
+}
+
+function toIntSafe(v: string, fallback: number, min?: number, max?: number) {
+  const n = Number.parseInt(v, 10);
+  if (Number.isNaN(n)) return fallback;
+  const clamped =
+    typeof min === "number" && n < min
+      ? min
+      : typeof max === "number" && n > max
+      ? max
+      : n;
+  return clamped;
+}
+
+function getCtxFromStorage(): { shop: string | null; host: string | null } {
+  if (typeof window === "undefined") return { shop: null, host: null };
+  return {
+    shop: window.sessionStorage.getItem("os_shop"),
+    host: window.sessionStorage.getItem("os_host"),
+  };
+}
+
+async function readJsonResponse(res: Response): Promise<unknown> {
+  const text = await res.text();
+  if (!text) return null;
   try {
-    return typeof window !== "undefined" ? window.sessionStorage.getItem(key) ?? "" : "";
+    return JSON.parse(text) as unknown;
   } catch {
-    return "";
+    return { ok: false, error: "Invalid JSON response from server" } satisfies ErrDTO;
   }
+}
+
+function extractErrorMessage(payload: unknown, status: number): string {
+  if (isErrDTO(payload)) return payload.error;
+  return `Request failed (${status})`;
 }
 
 export default function SettingsClient() {
   const sp = useSearchParams();
 
-  // Prefer URL params; fall back to sessionStorage (set by AppHomeClient)
-  const urlShop = first(sp.get("shop"));
-  const urlHost = first(sp.get("host"));
-  const urlEmbedded = first(sp.get("embedded"));
+  const qpShop = sp.get("shop");
+  const qpHost = sp.get("host");
 
-  const [ctxShop, setCtxShop] = useState(urlShop);
-  const [ctxHost, setCtxHost] = useState(urlHost);
-  const [ctxEmbedded, setCtxEmbedded] = useState(urlEmbedded || "");
+  const { shop: stShop, host: stHost } = getCtxFromStorage();
+  const shop = qpShop ?? stShop ?? "";
+  const host = qpHost ?? stHost ?? "";
 
   useEffect(() => {
-    const ssShop = safeGetSession("os_shop");
-    const ssHost = safeGetSession("os_host");
-    const ssEmbedded = safeGetSession("os_embedded");
+    if (typeof window === "undefined") return;
+    if (qpShop) window.sessionStorage.setItem("os_shop", qpShop);
+    if (qpHost) window.sessionStorage.setItem("os_host", qpHost);
+  }, [qpShop, qpHost]);
 
-    setCtxShop(urlShop || ssShop || "");
-    setCtxHost(urlHost || ssHost || "");
-    setCtxEmbedded(urlEmbedded || ssEmbedded || "1");
-  }, [urlShop, urlHost, urlEmbedded]);
+  const qs = useMemo(() => {
+    const p = new URLSearchParams();
+    if (shop) p.set("shop", shop);
+    if (host) p.set("host", host);
+    const s = p.toString();
+    return s ? `?${s}` : "";
+  }, [shop, host]);
 
-  const apiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY;
+  const app = useMemo<ClientApplication | null>(() => {
+    if (typeof window === "undefined") return null;
+    if (!host) return null;
+
+    const apiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY;
+    if (!apiKey) return null;
+
+    return createApp({
+      apiKey,
+      host,
+      forceRedirect: true,
+    });
+  }, [host]);
+
+  async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(init?.headers ? (init.headers as Record<string, string>) : {}),
+    };
+
+    const res = app
+      ? await authenticatedFetch(app)(path, { ...init, headers })
+      : await fetch(path, { ...init, headers });
+
+    const payload = await readJsonResponse(res);
+
+    if (!res.ok) {
+      throw new Error(extractErrorMessage(payload, res.status));
+    }
+
+    return payload as T;
+  }
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [okMsg, setOkMsg] = useState<string | null>(null);
 
-  // Form state
+  const [tenantName, setTenantName] = useState("");
+  const [tenantLogoUrl, setTenantLogoUrl] = useState<string>("");
   const [demoMode, setDemoMode] = useState(false);
-  const [portalTitle, setPortalTitle] = useState<string>("");
-  const [portalLogoUrl, setPortalLogoUrl] = useState<string>("");
-  const [delayHours, setDelayHours] = useState<number>(6);
-  const [exportFrequencyMinutes, setExportFrequencyMinutes] = useState<number>(15);
-  const [tenantName, setTenantName] = useState<string>("");
+  const [delayHours, setDelayHours] = useState(2);
+  const [exportFrequencyMinutes, setExportFrequencyMinutes] = useState(15);
 
-  // Build the authenticated fetch (App Bridge session tokens)
-  const authedFetch = useMemo(() => {
-    if (!apiKey || !ctxHost) return null;
-
-    const app = createApp({
-      apiKey,
-      host: ctxHost,
-      forceRedirect: true,
-    });
-
-    return authenticatedFetch(app);
-  }, [apiKey, ctxHost]);
-
-  async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    };
-
-    if (authedFetch) {
-      const res = await authedFetch(url, { ...(init ?? {}), headers });
-      const text = await res.text();
-      if (!text) throw new Error(`Empty response (${res.status})`);
-      return JSON.parse(text) as T;
-    }
-
-    const res = await fetch(url, { ...(init ?? {}), headers, cache: "no-store" });
-    const text = await res.text();
-    if (!text) throw new Error(`Empty response (${res.status})`);
-    return JSON.parse(text) as T;
-  }
-
-  const qs = useMemo(() => {
-    const p = new URLSearchParams();
-    if (ctxShop) p.set("shop", ctxShop);
-    if (ctxHost) p.set("host", ctxHost);
-    if (ctxEmbedded) p.set("embedded", ctxEmbedded);
-    return p.toString() ? `?${p.toString()}` : "";
-  }, [ctxShop, ctxHost, ctxEmbedded]);
-
-  function applySettings(s: SettingsDTO) {
-    setTenantName(s.tenantName || "");
-    setDemoMode(!!s.demoMode);
-    setPortalTitle(s.portalTitle ?? "");
-    setPortalLogoUrl(s.portalLogoUrl ?? "");
-    setDelayHours(s.delayHours ?? 6);
-    setExportFrequencyMinutes(s.exportFrequencyMinutes ?? 15);
-  }
-
-  async function loadSettings() {
+  async function load() {
     setLoading(true);
     setErr(null);
-    setOkMsg(null);
 
-    if (!apiKey || !ctxHost) {
-      setErr(
-        "Missing embedded app context (host). Open Settings from inside the embedded app dashboard."
-      );
+    try {
+      const payload = await fetchJSON<unknown>(`/api/app/settings${qs}`, { method: "GET" });
+
+      if (!isSettingsDTO(payload)) {
+        if (isErrDTO(payload)) throw new Error(payload.error);
+        throw new Error("Failed to load settings (unexpected payload)");
+      }
+
+      setTenantName(payload.tenantName ?? "");
+      setTenantLogoUrl(payload.tenantLogoUrl ?? "");
+      setDemoMode(Boolean(payload.demoMode));
+      setDelayHours(payload.delayHours ?? 2);
+      setExportFrequencyMinutes(payload.exportFrequencyMinutes ?? 15);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to load settings");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const data = await fetchJSON<SettingsDTO | ErrDTO>(`/api/app/settings${qs}`);
-    if (!data || typeof data !== "object") throw new Error("Invalid response");
-
-    if ((data as ErrDTO).ok === false) {
-      throw new Error((data as ErrDTO).error || "Failed to load settings");
-    }
-
-    applySettings(data as SettingsDTO);
-    setLoading(false);
   }
 
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        await loadSettings();
-      } catch (e) {
-        if (cancelled) return;
-        setErr(e instanceof Error ? e.message : "Failed to load settings");
-        setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qs, apiKey, ctxHost]);
+  }, [qs]);
 
   async function onSave() {
     setSaving(true);
@@ -166,38 +183,30 @@ export default function SettingsClient() {
     setOkMsg(null);
 
     try {
-      if (!apiKey || !ctxHost) {
-        throw new Error("Missing embedded app context (host). Open Settings from inside the embedded app.");
-      }
-
-      const cleanedTenantName = tenantName.trim();
-
-      const payload = {
-        // IMPORTANT: include tenantName so it persists
-        tenantName: cleanedTenantName || null,
-
+      const body = {
+        tenantName: tenantName.trim(),
+        tenantLogoUrl: tenantLogoUrl.trim() || null,
         demoMode,
-        portalTitle: portalTitle.trim() || null,
-        portalLogoUrl: portalLogoUrl.trim() || null,
+        delayHours,
+        exportFrequencyMinutes,
 
-        delayHours: Number.isFinite(delayHours) ? delayHours : 6,
-        exportFrequencyMinutes: Number.isFinite(exportFrequencyMinutes) ? exportFrequencyMinutes : 15,
+        // Optional backward compat if route still reads these:
+        portalTitle: null,
+        portalLogoUrl: tenantLogoUrl.trim() || null,
       };
 
-      const data = await fetchJSON<{ ok: true } | ErrDTO>(`/api/app/settings${qs}`, {
+      const payload = await fetchJSON<unknown>(`/api/app/settings${qs}`, {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       });
 
-      if (data.ok === false) {
-        setErr(data.error || "Failed to save");
-        setSaving(false);
-        return;
-      }
+      if (isErrDTO(payload)) throw new Error(payload.error);
+      // Accept ok:true even if empty
+      const ok = payload as SaveDTO;
+      if (ok.ok !== true) throw new Error("Failed to save settings");
 
-      // Re-fetch to ensure the UI reflects DB truth (and avoids “snapping back”)
-      await loadSettings();
       setOkMsg("Saved.");
+      await load();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to save");
     } finally {
@@ -205,240 +214,190 @@ export default function SettingsClient() {
     }
   }
 
-  const computedPortalTitle = portalTitle?.trim()
-    ? portalTitle.trim()
-    : `${tenantName?.trim() ? tenantName.trim() : "Your 3PL"} Portal`;
-
-  const canSave = !loading && !saving && !!apiKey && !!ctxHost;
+  const portalPreview = tenantName.trim() ? `${tenantName.trim()} Portal` : "Portal";
 
   return (
     <main className="min-h-screen bg-base-200 text-base-content">
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-4">
-        {/* Header */}
         <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="space-y-1">
               <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
               <p className="text-sm opacity-70">
-                Configure how this portal behaves for{" "}
-                <span className="font-semibold">{tenantName || "your 3PL"}</span>.
+                Configure portal branding and demo behavior for this tenant.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
+              {shop ? (
+                <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
+                  <div className="opacity-70 text-xs">Store</div>
+                  <div className="font-semibold">{shop}</div>
+                </div>
+              ) : null}
+
               <button
-                className="btn btn-primary btn-sm md:btn-md"
+                className={`btn btn-primary btn-sm ${saving ? "btn-disabled" : ""}`}
                 onClick={onSave}
-                disabled={!canSave}
+                disabled={saving || loading}
+                type="button"
               >
-                {saving ? (
-                  <>
-                    <span className="loading loading-spinner loading-xs" />
-                    Saving…
-                  </>
-                ) : (
-                  "Save changes"
-                )}
+                {saving ? "Saving…" : "Save changes"}
               </button>
             </div>
           </div>
 
-          {/* Status messages */}
-          <div className="pt-3 space-y-2">
-            {err ? (
-              <div className="alert alert-error text-sm">
-                <span>{err}</span>
-              </div>
-            ) : null}
+          {err ? (
+            <div className="mt-3 alert alert-error">
+              <span>{err}</span>
+            </div>
+          ) : null}
 
-            {okMsg ? (
-              <div className="alert alert-success text-sm">
-                <span>{okMsg}</span>
+          {okMsg ? (
+            <div className="mt-3 alert alert-success">
+              <span>{okMsg}</span>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-semibold">3PL Branding</h2>
+              <span className="badge badge-ghost">Portal title: {portalPreview}</span>
+            </div>
+
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text">3PL name</span>
               </div>
-            ) : null}
+              <input
+                className="input input-bordered w-full"
+                value={tenantName}
+                onChange={(e) => setTenantName(e.target.value)}
+                placeholder='e.g. "Acme Fulfillment"'
+                disabled={loading}
+              />
+              <div className="label">
+                <span className="label-text-alt opacity-70">
+                  Portal will display <span className="font-semibold">{portalPreview}</span>.
+                </span>
+              </div>
+            </label>
+
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text">3PL logo URL (optional)</span>
+              </div>
+              <input
+                className="input input-bordered w-full"
+                value={tenantLogoUrl}
+                onChange={(e) => setTenantLogoUrl(e.target.value)}
+                placeholder="https://…"
+                disabled={loading}
+              />
+              <div className="label">
+                <span className="label-text-alt opacity-70">Hosted image URL (SVG/PNG).</span>
+              </div>
+            </label>
+
+            <div className="flex items-center gap-3">
+              {tenantLogoUrl.trim() ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={tenantLogoUrl.trim()}
+                  alt="3PL logo preview"
+                  className="w-10 h-10 rounded-lg border border-base-300 object-contain bg-base-200"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-lg border border-base-300 bg-base-200 flex items-center justify-center text-xs opacity-60">
+                  Logo
+                </div>
+              )}
+
+              <div className="text-sm">
+                <div className="font-semibold">{portalPreview}</div>
+                <div className="opacity-70">Header preview</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-3">
+            <h2 className="font-semibold">Demo mode</h2>
+
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="font-semibold">Enable demo mode</div>
+                <p className="text-sm opacity-70">
+                  Show sample rows when there are no live orders yet (useful for review + onboarding).
+                </p>
+              </div>
+
+              <input
+                type="checkbox"
+                className="toggle toggle-success"
+                checked={demoMode}
+                onChange={(e) => setDemoMode(e.target.checked)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="divider my-2" />
+
+            <div className="space-y-2">
+              <div className="font-semibold">Order flow defaults</div>
+
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text">Default delay (hours)</span>
+                </div>
+                <input
+                  className="input input-bordered w-full"
+                  inputMode="numeric"
+                  value={String(delayHours)}
+                  onChange={(e) => setDelayHours(toIntSafe(e.target.value, delayHours, 0, 72))}
+                  disabled={loading}
+                />
+                <div className="label">
+                  <span className="label-text-alt opacity-70">
+                    Used for initial “readyAt” computation during ingestion.
+                  </span>
+                </div>
+              </label>
+
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text">Export refresh cadence (minutes)</span>
+                </div>
+                <input
+                  className="input input-bordered w-full"
+                  inputMode="numeric"
+                  value={String(exportFrequencyMinutes)}
+                  onChange={(e) =>
+                    setExportFrequencyMinutes(
+                      toIntSafe(e.target.value, exportFrequencyMinutes, 1, 240),
+                    )
+                  }
+                  disabled={loading}
+                />
+                <div className="label">
+                  <span className="label-text-alt opacity-70">
+                    UI refresh cadence for now (we’ll align to actual exports later).
+                  </span>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 
         {loading ? (
-          <div className="bg-base-100 border border-base-300 rounded-xl p-6 shadow-sm flex items-center gap-3">
-            <span className="loading loading-spinner loading-md" />
-            <div className="space-y-1">
-              <p className="font-semibold">Loading settings…</p>
-              <p className="text-sm opacity-70">Fetching your current configuration.</p>
+          <div className="bg-base-100 border border-base-300 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="loading loading-spinner loading-sm" />
+              <span className="text-sm opacity-70">Loading settings…</span>
             </div>
           </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* 3PL Identity */}
-            <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-4">
-              <div className="space-y-1">
-                <h2 className="text-base md:text-lg font-semibold">3PL Identity</h2>
-                <p className="text-sm opacity-70">Used for portal naming and branding defaults.</p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">3PL name</label>
-                <input
-                  className="input input-bordered w-full"
-                  placeholder="Acme Fulfillment"
-                  value={tenantName}
-                  onChange={(e) => setTenantName(e.target.value)}
-                />
-                <p className="text-xs opacity-70">
-                  This is what merchants will recognize. You can change it later.
-                </p>
-              </div>
-
-              <div className="bg-base-200 border border-base-300 rounded-xl p-3">
-                <p className="text-sm font-semibold mb-1">Portal name preview</p>
-                <p className="text-sm opacity-80">{computedPortalTitle}</p>
-              </div>
-            </div>
-
-            {/* Portal Branding */}
-            <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-4">
-              <div className="space-y-1">
-                <h2 className="text-base md:text-lg font-semibold">Portal Branding</h2>
-                <p className="text-sm opacity-70">What merchants see at the top of your portal.</p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Portal title (optional override)</label>
-                <input
-                  className="input input-bordered w-full"
-                  placeholder="Acme Fulfillment Portal"
-                  value={portalTitle}
-                  onChange={(e) => setPortalTitle(e.target.value)}
-                />
-                <p className="text-xs opacity-70">
-                  Leave blank to use “{tenantName?.trim() ? tenantName.trim() : "Your 3PL"} Portal”.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Logo URL</label>
-                <input
-                  className="input input-bordered w-full"
-                  placeholder="https://…/logo.png"
-                  value={portalLogoUrl}
-                  onChange={(e) => setPortalLogoUrl(e.target.value)}
-                />
-                <p className="text-xs opacity-70">Use a public URL (PNG/SVG). We can add uploads later.</p>
-              </div>
-
-              <div className="bg-base-200 border border-base-300 rounded-xl p-3">
-                <p className="text-sm font-semibold mb-2">Preview</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-base-100 border border-base-300 overflow-hidden flex items-center justify-center">
-                    {portalLogoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={portalLogoUrl}
-                        alt="Portal logo preview"
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div className="text-xs opacity-60">Logo</div>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="font-semibold leading-tight">{computedPortalTitle}</div>
-                    <div className="text-xs opacity-70">Merchant-facing view</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Ops Behavior */}
-            <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-4">
-              <div className="space-y-1">
-                <h2 className="text-base md:text-lg font-semibold">Ops Behavior</h2>
-                <p className="text-sm opacity-70">
-                  Controls how OrderShifter buffers Shopify changes and schedules exports.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Smart delay window (hours)</label>
-                <input
-                  type="number"
-                  className="input input-bordered w-full"
-                  min={0}
-                  max={72}
-                  value={delayHours}
-                  onChange={(e) => setDelayHours(Number(e.target.value || 0))}
-                />
-                <p className="text-xs opacity-70">
-                  Orders can briefly “pause” while Shopify changes settle (edits/cancels/address updates).
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Export frequency (minutes)</label>
-                <input
-                  type="number"
-                  className="input input-bordered w-full"
-                  min={5}
-                  max={1440}
-                  value={exportFrequencyMinutes}
-                  onChange={(e) => setExportFrequencyMinutes(Number(e.target.value || 0))}
-                />
-                <p className="text-xs opacity-70">How often OrderShifter batches and exports validated orders.</p>
-              </div>
-
-              <div className="bg-base-200 border border-base-300 rounded-xl p-3 space-y-2">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold">Demo mode</p>
-                    <p className="text-xs opacity-70">
-                      Use sample data in the portal (useful for Shopify review and early demos).
-                    </p>
-                  </div>
-
-                  <input
-                    type="checkbox"
-                    className="toggle toggle-primary"
-                    checked={demoMode}
-                    onChange={(e) => setDemoMode(e.target.checked)}
-                  />
-                </div>
-
-                <div className="text-xs opacity-70">
-                  When enabled, the portal can show realistic example tables even if orders aren’t being ingested yet.
-                </div>
-              </div>
-            </div>
-
-            {/* Notes / Next */}
-            <div className="md:col-span-2 bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-full bg-primary/10 text-primary mt-0.5">
-                  <span className="text-sm font-bold">i</span>
-                </div>
-                <div className="space-y-1">
-                  <p className="font-semibold">What’s next</p>
-                  <p className="text-sm opacity-80">
-                    Next we’ll wire up ingestion so this portal reflects real Shopify activity. While we wait on protected
-                    data access, demo mode lets Shopify reviewers click around and see a “real” app.
-                  </p>
-                  <p className="text-xs opacity-70">
-                    Tip: Keep demo mode ON for review; turn it OFF once order ingestion is approved and live.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Footer actions */}
-        <div className="flex items-center justify-between text-xs opacity-70 pt-2">
-          <div>
-            Embedded: <span className="font-semibold">{ctxEmbedded || "0"}</span> • Shop:{" "}
-            <span className="font-semibold">{ctxShop || "(none)"}</span>
-          </div>
-          <div>OrderShifter • Settings</div>
-        </div>
+        ) : null}
       </div>
     </main>
   );
