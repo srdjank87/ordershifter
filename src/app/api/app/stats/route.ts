@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const [ordersTotal, exceptionsOpen, lastExport] = await Promise.all([
+    const [ordersTotal, exceptionsOpen, lastExport, ordersByState] = await Promise.all([
       prisma.shopifyOrder.count({ where: { merchantId: merchant.id } }),
       prisma.orderException.count({
         where: { merchantId: merchant.id, status: "OPEN" },
@@ -37,7 +37,18 @@ export async function GET(req: Request) {
         orderBy: { createdAt: "desc" },
         select: { id: true, status: true, summary: true, error: true, createdAt: true },
       }),
+      prisma.shopifyOrder.groupBy({
+        by: ['state'],
+        where: { merchantId: merchant.id },
+        _count: { state: true },
+      }),
     ]);
+
+    // Build counts object by state
+    const counts: Record<string, number> = {};
+    for (const group of ordersByState) {
+      counts[group.state] = group._count.state;
+    }
 
     return NextResponse.json({
       ok: true,
@@ -45,6 +56,8 @@ export async function GET(req: Request) {
       ordersTotal,
       exceptionsOpen,
       lastExport,
+      counts,
+      lastExportAt: lastExport?.createdAt.toISOString() ?? null,
     });
   } catch (err: unknown) {
     const message =

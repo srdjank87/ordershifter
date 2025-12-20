@@ -382,21 +382,22 @@ export default function SettingsClient() {
           </div>
         </div>
 
-        {/* Branding Settings */}
-        <div className="card bg-base-200 shadow-sm">
-          <div className="card-body space-y-3">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h2 className="text-base font-semibold">Branding</h2>
-              <button
-                className="btn btn-sm btn-primary"
-                onClick={onSave}
-                disabled={saving || loading}
-              >
-                {saving ? "Saving..." : "Save Changes"}
-              </button>
-            </div>
+        {/* Two Column Grid - Branding & Order Processing */}
+        <div className="grid lg:grid-cols-2 gap-4">
+          {/* Branding Settings */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <h2 className="text-base font-semibold">Branding</h2>
+                <button
+                  className="btn btn-sm btn-primary"
+                  onClick={onSave}
+                  disabled={saving || loading}
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+              </div>
 
-            <div className="grid lg:grid-cols-2 gap-4">
               <label className="form-control w-full">
                 <div className="label">
                   <span className="label-text font-semibold">3PL Name</span>
@@ -408,64 +409,42 @@ export default function SettingsClient() {
                   placeholder='e.g. "Acme Fulfillment"'
                   disabled={loading}
                 />
-                <div className="label">
-                  <span className="label-text-alt opacity-70">
-                    Portal header will display "{tenantName.trim() ? `${tenantName.trim()} Portal` : "Portal"}"
-                  </span>
-                </div>
               </label>
 
               <label className="form-control w-full">
                 <div className="label">
-                  <span className="label-text font-semibold">Logo URL (optional)</span>
+                  <span className="label-text font-semibold">Logo URL</span>
                 </div>
                 <input
                   className="input input-bordered w-full"
                   value={tenantLogoUrl}
                   onChange={(e) => setTenantLogoUrl(e.target.value)}
-                  placeholder="https://..."
+                  placeholder="https://example.com/logo.png"
                   disabled={loading}
                 />
                 <div className="label">
                   <span className="label-text-alt opacity-70">
-                    &nbsp;
+                    Enter a URL to your logo (PNG or JPG)
                   </span>
                 </div>
               </label>
             </div>
-
-            {tenantLogoUrl.trim() && (
-              <div className="flex items-center gap-3 p-3 bg-base-100 rounded-xl border border-base-300">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={tenantLogoUrl.trim()}
-                  alt="Logo preview"
-                  className="w-10 h-10 rounded-lg border border-base-300 object-contain bg-base-200"
-                />
-                <div className="text-sm">
-                  <div className="font-semibold">Logo Preview</div>
-                  <div className="opacity-70 text-xs">How it will appear in the portal</div>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* Order Processing Settings */}
-        <div className="card bg-base-200 shadow-sm">
-          <div className="card-body space-y-3">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h2 className="text-base font-semibold">Order Processing</h2>
-              <button
-                className="btn btn-sm btn-primary"
-                onClick={onSave}
-                disabled={saving || loading}
-              >
-                {saving ? "Saving..." : "Save Changes"}
-              </button>
-            </div>
+          {/* Order Processing Settings */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <h2 className="text-base font-semibold">Order Processing</h2>
+                <button
+                  className="btn btn-sm btn-primary"
+                  onClick={onSave}
+                  disabled={saving || loading}
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+              </div>
 
-            <div className="grid lg:grid-cols-2 gap-4">
               <label className="form-control">
                 <div className="label">
                   <span className="label-text font-semibold">Default Delay (hours)</span>
@@ -479,7 +458,7 @@ export default function SettingsClient() {
                 />
                 <div className="label">
                   <span className="label-text-alt opacity-70">
-                    Wait time before marking orders as ready (0-72 hours)
+                    Wait time before orders become ready (0-72)
                   </span>
                 </div>
               </label>
@@ -501,7 +480,7 @@ export default function SettingsClient() {
                 />
                 <div className="label">
                   <span className="label-text-alt opacity-70">
-                    How often to check for orders ready to export (1-240 minutes)
+                    How often to check for ready orders (1-240)
                   </span>
                 </div>
               </label>
@@ -509,29 +488,151 @@ export default function SettingsClient() {
           </div>
         </div>
 
-        {/* WMS Export (Coming Soon) */}
+        {/* Portal Header Preview */}
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body space-y-3">
-            <h2 className="text-base font-semibold">WMS Export (Coming Next)</h2>
+            <h2 className="text-base font-semibold">Portal Header Preview</h2>
             <p className="text-sm opacity-80">
-              OrderShifter's goal is to hand your WMS only clean, verified orders — via SFTP/CSV or API — on your schedule.
+              This is how your portal header will appear to users.
             </p>
 
-            <div className="grid md:grid-cols-2 gap-3 text-sm">
-              <div className="rounded-xl bg-base-100 border border-base-300 p-3 space-y-1">
-                <div className="font-semibold">Export Schedule</div>
-                <div className="text-xs opacity-70">
-                  Example: every 15 minutes, or hourly, or daily at 6pm.
+            <div className="bg-base-100 rounded-xl border border-base-300 p-6">
+              <div className="flex items-center gap-4">
+                {tenantLogoUrl.trim() ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={tenantLogoUrl.trim()}
+                    alt="Portal logo"
+                    className="h-12 w-auto object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <svg className="w-6 h-6 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-2xl font-bold">
+                    {tenantName.trim() ? `${tenantName.trim()} Portal` : "Portal"}
+                  </h1>
+                  <p className="text-sm opacity-70">Order Exception Management</p>
                 </div>
-                <div className="opacity-70">Status: Not configured</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* WMS Export Configuration */}
+        <div className="card bg-base-200 shadow-sm">
+          <div className="card-body space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">WMS Export Configuration</h2>
+                <p className="text-sm opacity-80">
+                  Configure how clean, verified orders are exported to your WMS.
+                </p>
+              </div>
+              <span className="badge badge-warning">Coming Soon</span>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-4">
+              {/* Export Method */}
+              <div className="space-y-3">
+                <label className="form-control w-full">
+                  <div className="label">
+                    <span className="label-text font-semibold">Export Method</span>
+                  </div>
+                  <select className="select select-bordered w-full" disabled>
+                    <option>CSV Download</option>
+                    <option>SFTP Upload</option>
+                    <option>API Webhook</option>
+                    <option>Email Attachment</option>
+                  </select>
+                  <div className="label">
+                    <span className="label-text-alt opacity-70">
+                      How orders are delivered to your WMS
+                    </span>
+                  </div>
+                </label>
+
+                <label className="form-control w-full">
+                  <div className="label">
+                    <span className="label-text font-semibold">Export Schedule</span>
+                  </div>
+                  <select className="select select-bordered w-full" disabled>
+                    <option>Every {exportFrequencyMinutes} minutes</option>
+                    <option>Hourly</option>
+                    <option>Daily at 6:00 PM</option>
+                    <option>Manual only</option>
+                  </select>
+                  <div className="label">
+                    <span className="label-text-alt opacity-70">
+                      When to automatically export ready orders
+                    </span>
+                  </div>
+                </label>
               </div>
 
-              <div className="rounded-xl bg-base-100 border border-base-300 p-3 space-y-1">
-                <div className="font-semibold">Destination</div>
-                <div className="text-xs opacity-70">
-                  SFTP folder, email drop, or API endpoint.
+              {/* Connection Details */}
+              <div className="space-y-3">
+                <label className="form-control w-full">
+                  <div className="label">
+                    <span className="label-text font-semibold">SFTP Host</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="sftp.example.com"
+                    className="input input-bordered w-full"
+                    disabled
+                  />
+                </label>
+
+                <label className="form-control w-full">
+                  <div className="label">
+                    <span className="label-text font-semibold">SFTP Path</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="/incoming/orders/"
+                    className="input input-bordered w-full"
+                    disabled
+                  />
+                </label>
+
+                <label className="form-control w-full">
+                  <div className="label">
+                    <span className="label-text font-semibold">Username</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="wms-user"
+                    className="input input-bordered w-full"
+                    disabled
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Info Box */}
+            <div className="bg-info/10 border border-info/30 rounded-xl p-4 space-y-2">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-info mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm space-y-1">
+                  <p className="font-semibold">Why Export Configuration Matters</p>
+                  <p className="opacity-80">
+                    OrderShifter only exports orders that have passed the Exception Gate — meaning they're stable,
+                    correct, and compliant. This prevents messy data from entering your WMS and eliminates costly rework.
+                  </p>
+                  <p className="opacity-80 text-xs pt-1">
+                    Most 3PLs go live without touching their WMS configuration. Export features will be available soon.
+                  </p>
                 </div>
-                <div className="opacity-70">Status: Not configured</div>
               </div>
             </div>
           </div>
