@@ -235,20 +235,49 @@ export default function SettingsClient() {
         throw new Error("Missing host. Open Settings from inside Shopify admin.");
       }
 
-      const res = await authedFetch(`/api/app/settings${qs}`, {
+      // First, update the setting
+      const settingsRes = await authedFetch(`/api/app/settings${qs}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ demoMode: nextVal }),
       });
 
-      const payload = await readJson(res);
+      const settingsPayload = await readJson(settingsRes);
 
-      if (!res.ok) {
-        const msg = isErrDTO(payload) ? payload.error : `Failed to save (${res.status})`;
+      if (!settingsRes.ok) {
+        const msg = isErrDTO(settingsPayload) ? settingsPayload.error : `Failed to save (${settingsRes.status})`;
         throw new Error(msg);
       }
 
-      setOkMsg("Demo mode updated.");
+      // Then seed or clear demo data based on the toggle
+      if (nextVal) {
+        // Enabling demo mode - seed demo data
+        const seedRes = await authedFetch(`/api/app/demo/seed${qs}`, {
+          method: "POST",
+        });
+
+        const seedPayload = await readJson(seedRes);
+
+        if (!seedRes.ok && seedRes.status !== 200) {
+          // Non-critical error - demo mode is on, but seeding failed
+          console.warn("Demo seed warning:", seedPayload);
+        }
+
+        setOkMsg("Demo mode enabled. Sample data is now visible in the dashboard.");
+      } else {
+        // Disabling demo mode - clear demo data
+        const clearRes = await authedFetch(`/api/app/demo/clear${qs}`, {
+          method: "POST",
+        });
+
+        const clearPayload = await readJson(clearRes);
+
+        if (!clearRes.ok) {
+          console.warn("Demo clear warning:", clearPayload);
+        }
+
+        setOkMsg("Demo mode disabled. Sample data has been removed.");
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to save demo mode");
       setDemoMode(!nextVal); // Revert on error
@@ -259,9 +288,9 @@ export default function SettingsClient() {
 
   return (
     <div className="min-h-screen bg-base-100">
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold">{portalTitle}</h1>
             <p className="text-sm opacity-70">
@@ -269,8 +298,8 @@ export default function SettingsClient() {
             </p>
           </div>
 
-          <Link href="/app" className="btn btn-outline btn-sm">
-            Back to Portal
+          <Link href="/app" className="btn btn-primary btn-sm">
+            ← Back to Dashboard
           </Link>
         </div>
 
@@ -286,39 +315,69 @@ export default function SettingsClient() {
           </div>
         )}
 
-        {/* Connection Status */}
-        <div className="card bg-base-200 shadow-sm">
-          <div className="card-body space-y-3">
-            <h2 className="text-base font-semibold">Connection Status</h2>
+        {/* Two Column Grid - Connection & Branding */}
+        <div className="grid lg:grid-cols-2 gap-4">
+          {/* Connection Status */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body space-y-3">
+              <h2 className="text-base font-semibold">Connection Status</h2>
 
-            <div className="text-sm opacity-80 space-y-1">
-              <div>
-                <span className="font-semibold">Shop:</span>{" "}
-                <span className="opacity-80">{shop || "—"}</span>
-              </div>
+              <div className="text-sm opacity-80 space-y-1">
+                <div>
+                  <span className="font-semibold">Shop:</span>{" "}
+                  <span className="opacity-80">{shop || "—"}</span>
+                </div>
 
-              {!loading && tenantName ? (
-                <>
-                  <div>
-                    <span className="font-semibold">3PL:</span>{" "}
-                    <span className="opacity-80">{tenantName}</span>
+                {!loading && tenantName ? (
+                  <>
+                    <div>
+                      <span className="font-semibold">3PL:</span>{" "}
+                      <span className="opacity-80">{tenantName}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Status:</span>{" "}
+                      <span className="text-success font-semibold">Connected</span>
+                    </div>
+                  </>
+                ) : loading ? (
+                  <div className="flex items-center gap-2">
+                    <span className="loading loading-spinner loading-sm" />
+                    <span className="opacity-70">Loading connection status...</span>
                   </div>
+                ) : (
                   <div>
                     <span className="font-semibold">Status:</span>{" "}
-                    <span className="text-success font-semibold">Connected</span>
+                    <span className="text-warning font-semibold">Not Connected</span>
                   </div>
-                </>
-              ) : loading ? (
-                <div className="flex items-center gap-2">
-                  <span className="loading loading-spinner loading-sm" />
-                  <span className="opacity-70">Loading connection status...</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Demo Mode */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body space-y-3">
+              <h2 className="text-base font-semibold">Review Mode</h2>
+              <p className="text-sm opacity-80">
+                Enable demo data so the portal stays useful during Shopify review.
+              </p>
+
+              <div className="flex items-center justify-between gap-4">
+                <div className="text-sm">
+                  <div className="font-semibold">Demo data</div>
+                  <div className="text-xs opacity-70">
+                    Sample orders/exceptions/exports
+                  </div>
                 </div>
-              ) : (
-                <div>
-                  <span className="font-semibold">Status:</span>{" "}
-                  <span className="text-warning font-semibold">Not Connected</span>
-                </div>
-              )}
+
+                <input
+                  type="checkbox"
+                  className="toggle toggle-success toggle-lg"
+                  checked={demoMode}
+                  onChange={(e) => saveDemoMode(e.target.checked)}
+                  disabled={saving || loading}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -326,7 +385,7 @@ export default function SettingsClient() {
         {/* Branding Settings */}
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body space-y-3">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-base font-semibold">Branding</h2>
               <button
                 className="btn btn-sm btn-primary"
@@ -337,36 +396,43 @@ export default function SettingsClient() {
               </button>
             </div>
 
-            <label className="form-control w-full">
-              <div className="label">
-                <span className="label-text font-semibold">3PL Name</span>
-              </div>
-              <input
-                className="input input-bordered w-full"
-                value={tenantName}
-                onChange={(e) => setTenantName(e.target.value)}
-                placeholder='e.g. "Acme Fulfillment"'
-                disabled={loading}
-              />
-              <div className="label">
-                <span className="label-text-alt opacity-70">
-                  Portal header will display "{tenantName.trim() ? `${tenantName.trim()} Portal` : "Portal"}"
-                </span>
-              </div>
-            </label>
+            <div className="grid lg:grid-cols-2 gap-4">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text font-semibold">3PL Name</span>
+                </div>
+                <input
+                  className="input input-bordered w-full"
+                  value={tenantName}
+                  onChange={(e) => setTenantName(e.target.value)}
+                  placeholder='e.g. "Acme Fulfillment"'
+                  disabled={loading}
+                />
+                <div className="label">
+                  <span className="label-text-alt opacity-70">
+                    Portal header will display "{tenantName.trim() ? `${tenantName.trim()} Portal` : "Portal"}"
+                  </span>
+                </div>
+              </label>
 
-            <label className="form-control w-full">
-              <div className="label">
-                <span className="label-text font-semibold">Logo URL (optional)</span>
-              </div>
-              <input
-                className="input input-bordered w-full"
-                value={tenantLogoUrl}
-                onChange={(e) => setTenantLogoUrl(e.target.value)}
-                placeholder="https://..."
-                disabled={loading}
-              />
-            </label>
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text font-semibold">Logo URL (optional)</span>
+                </div>
+                <input
+                  className="input input-bordered w-full"
+                  value={tenantLogoUrl}
+                  onChange={(e) => setTenantLogoUrl(e.target.value)}
+                  placeholder="https://..."
+                  disabled={loading}
+                />
+                <div className="label">
+                  <span className="label-text-alt opacity-70">
+                    &nbsp;
+                  </span>
+                </div>
+              </label>
+            </div>
 
             {tenantLogoUrl.trim() && (
               <div className="flex items-center gap-3 p-3 bg-base-100 rounded-xl border border-base-300">
@@ -385,37 +451,10 @@ export default function SettingsClient() {
           </div>
         </div>
 
-        {/* Demo Mode */}
-        <div className="card bg-base-200 shadow-sm">
-          <div className="card-body space-y-3">
-            <h2 className="text-base font-semibold">Review Mode</h2>
-            <p className="text-sm opacity-80">
-              If order access is pending approval, enable demo data so the portal stays useful during review.
-            </p>
-
-            <div className="flex items-center justify-between gap-4">
-              <div className="text-sm">
-                <div className="font-semibold">Enable demo data</div>
-                <div className="text-xs opacity-70">
-                  Shows sample orders/exceptions/export logs in this portal.
-                </div>
-              </div>
-
-              <button
-                className={`btn btn-sm ${demoMode ? "btn-success" : "btn-outline"}`}
-                onClick={() => saveDemoMode(!demoMode)}
-                disabled={saving || loading}
-              >
-                {saving ? "Saving..." : demoMode ? "On" : "Off"}
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Order Processing Settings */}
         <div className="card bg-base-200 shadow-sm">
           <div className="card-body space-y-3">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-base font-semibold">Order Processing</h2>
               <button
                 className="btn btn-sm btn-primary"
@@ -426,7 +465,7 @@ export default function SettingsClient() {
               </button>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid lg:grid-cols-2 gap-4">
               <label className="form-control">
                 <div className="label">
                   <span className="label-text font-semibold">Default Delay (hours)</span>

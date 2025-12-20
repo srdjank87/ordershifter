@@ -22,22 +22,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Read settings to see if demoMode is enabled (optional safety)
+    // Read settings for delayHours
     const settings = await prisma.tenantSettings.findUnique({
       where: { tenantId: merchant.tenantId },
-      select: { demoMode: true, delayHours: true },
+      select: { delayHours: true },
     });
-
-    if (!settings?.demoMode) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Demo mode is disabled. Enable it in Settings before seeding demo data.",
-        },
-        { status: 400 }
-      );
-    }
 
     // Avoid duplicating demo data: if demo orders already exist, do nothing.
     const existingDemoCount = await prisma.shopifyOrder.count({

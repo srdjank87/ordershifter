@@ -28,10 +28,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" data-theme="light">
       <head>
-        {/* Shopify embedded runtime checks expect App Bridge CDN */}
+        {/* Shopify embedded runtime checks expect latest App Bridge CDN */}
         <Script
-          src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
-          strategy="afterInteractive"
+          src="https://cdn.shopify.com/shopifycloud/app-bridge/app-bridge-latest.min.js"
+          strategy="beforeInteractive"
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
