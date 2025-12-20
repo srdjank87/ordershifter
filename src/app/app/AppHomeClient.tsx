@@ -7,6 +7,9 @@ import { Redirect } from "@shopify/app-bridge/actions";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
 import type { ClientApplication } from "@shopify/app-bridge";
 
+import Link from "next/link";
+
+
 // ---------- Types ----------
 type ContextOk = {
   ok: true;
@@ -322,6 +325,13 @@ export default function AppHomeClient() {
           </div>
         </div>
       </div>
+
+      <div className="flex items-center gap-2">
+  <Link href="/app/settings" className="btn btn-ghost btn-sm">
+    Settings
+  </Link>
+</div>
+
 
       {/* Top grid */}
       <div className="grid lg:grid-cols-3 gap-4">
