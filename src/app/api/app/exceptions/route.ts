@@ -4,41 +4,67 @@ import { requireShopifyAuth } from "@/lib/shopify/requireShopifyAuth";
 
 export async function GET(req: Request) {
   try {
-    const { shop } = await requireShopifyAuth(req);
+    const auth = await requireShopifyAuth(req);
+
+    const url = new URL(req.url);
+    const shopParam = url.searchParams.get("shop");
+    if (shopParam && shopParam !== auth.shop) {
+      return NextResponse.json(
+        { ok: false, error: "Shop mismatch" },
+        { status: 403 }
+      );
+    }
+
+    const limit = Math.min(
+      Math.max(parseInt(url.searchParams.get("limit") ?? "25", 10) || 25, 1),
+      100
+    );
 
     const merchant = await prisma.merchantAccount.findUnique({
-      where: { shopDomain: shop },
-      select: { id: true },
+      where: { shopDomain: auth.shop },
+      select: { id: true, shopDomain: true },
     });
 
     if (!merchant) {
-      return NextResponse.json({ ok: true, items: [] }, { status: 200 });
+      return NextResponse.json(
+        { ok: false, error: "Merchant not connected (no MerchantAccount row)" },
+        { status: 400 }
+      );
     }
 
-    const rows = await prisma.orderException.findMany({
+    const items = await prisma.orderException.findMany({
       where: { merchantId: merchant.id },
       orderBy: { createdAt: "desc" },
-      take: 25,
+      take: limit,
       select: {
         id: true,
-        createdAt: true,
         code: true,
         message: true,
         status: true,
+        createdAt: true,
+        resolvedAt: true,
+        order: {
+          select: {
+            id: true,
+            shopifyOrderId: true,
+            shopifyName: true,
+            state: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
-    const items = rows.map((r) => ({
-      id: r.id,
-      createdAt: r.createdAt.toISOString(),
-      code: r.code,
-      message: r.message,
-      status: r.status,
-    }));
-
-    return NextResponse.json({ ok: true, items }, { status: 200 });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Exceptions fetch failed";
-    return NextResponse.json({ ok: false, error: msg }, { status: 401 });
+    return NextResponse.json({
+      ok: true,
+      shop: merchant.shopDomain,
+      items,
+    });
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unknown error in /api/app/exceptions";
+    return NextResponse.json({ ok: false, error: message }, { status: 401 });
   }
 }

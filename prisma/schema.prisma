@@ -59,12 +59,18 @@ model TenantSettings {
   id         String   @id @default(cuid())
   tenantId   String   @unique
   tenant     Tenant   @relation(fields: [tenantId], references: [id])
+
   delayHours Int      @default(6)
   timezone   String   @default("America/Toronto")
-  exportMode String   @default("CSV_DOWNLOAD") // later: SFTP, API
+  exportMode String   @default("CSV_DOWNLOAD")
+
+  // ✅ add this
+  demoMode   Boolean  @default(false)
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
 
 model Warehouse {
   id           String        @id @default(cuid())
@@ -117,7 +123,7 @@ model ShopifyOrder {
   payload          Json
 
   state             OrderState @default(PENDING)
-  readyAt           DateTime // createdAtShopify + delay
+  readyAt           DateTime
   routedWarehouseId String?
   exportBatchId     String?
 
@@ -128,9 +134,13 @@ model ShopifyOrder {
   exceptions OrderException[]
   exportLogs ExportLog[]
 
+  // ✅ add this
+  isDemo Boolean @default(false)
+
   @@unique([merchantId, shopifyOrderId])
   @@index([tenantId, state, readyAt])
 }
+
 
 model RoutingRule {
   id       String @id @default(cuid())

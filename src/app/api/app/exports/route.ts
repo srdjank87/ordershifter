@@ -4,40 +4,63 @@ import { requireShopifyAuth } from "@/lib/shopify/requireShopifyAuth";
 
 export async function GET(req: Request) {
   try {
-    const { shop } = await requireShopifyAuth(req);
+    const auth = await requireShopifyAuth(req);
+
+    const url = new URL(req.url);
+    const shopParam = url.searchParams.get("shop");
+    if (shopParam && shopParam !== auth.shop) {
+      return NextResponse.json(
+        { ok: false, error: "Shop mismatch" },
+        { status: 403 }
+      );
+    }
+
+    const limit = Math.min(
+      Math.max(parseInt(url.searchParams.get("limit") ?? "10", 10) || 10, 1),
+      50
+    );
 
     const merchant = await prisma.merchantAccount.findUnique({
-      where: { shopDomain: shop },
-      select: { id: true },
+      where: { shopDomain: auth.shop },
+      select: { id: true, shopDomain: true },
     });
 
     if (!merchant) {
-      return NextResponse.json({ ok: true, items: [] }, { status: 200 });
+      return NextResponse.json(
+        { ok: false, error: "Merchant not connected (no MerchantAccount row)" },
+        { status: 400 }
+      );
     }
 
-    const rows = await prisma.exportLog.findMany({
+    const items = await prisma.exportLog.findMany({
       where: { merchantId: merchant.id },
       orderBy: { createdAt: "desc" },
-      take: 25,
+      take: limit,
       select: {
         id: true,
-        createdAt: true,
         status: true,
         summary: true,
         error: true,
+        createdAt: true,
+        order: {
+          select: {
+            id: true,
+            shopifyOrderId: true,
+            shopifyName: true,
+            state: true,
+          },
+        },
       },
     });
 
-    const items = rows.map((r) => ({
-      id: r.id,
-      createdAt: r.createdAt.toISOString(),
-      status: r.status,
-      notes: r.summary ?? r.error ?? null,
-    }));
-
-    return NextResponse.json({ ok: true, items }, { status: 200 });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Exports fetch failed";
-    return NextResponse.json({ ok: false, error: msg }, { status: 401 });
+    return NextResponse.json({
+      ok: true,
+      shop: merchant.shopDomain,
+      items,
+    });
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : "Unknown error in /api/app/exports";
+    return NextResponse.json({ ok: false, error: message }, { status: 401 });
   }
 }
