@@ -18,8 +18,6 @@ type SettingsDTO = {
   exportFrequencyMinutes: number;
 };
 
-type SaveDTO = { ok: true } & Record<string, never>;
-
 function isErrDTO(v: unknown): v is ErrDTO {
   return (
     typeof v === "object" &&
@@ -45,64 +43,55 @@ function isSettingsDTO(v: unknown): v is SettingsDTO {
   );
 }
 
-function toIntSafe(v: string, fallback: number, min?: number, max?: number) {
-  const n = Number.parseInt(v, 10);
-  if (Number.isNaN(n)) return fallback;
-  const clamped =
-    typeof min === "number" && n < min
-      ? min
-      : typeof max === "number" && n > max
-      ? max
-      : n;
-  return clamped;
+function readStorage(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(key);
 }
 
-function getCtxFromStorage(): { shop: string | null; host: string | null } {
-  if (typeof window === "undefined") return { shop: null, host: null };
-  return {
-    shop: window.sessionStorage.getItem("os_shop"),
-    host: window.sessionStorage.getItem("os_host"),
-  };
+function writeStorage(key: string, value: string) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(key, value);
 }
 
-async function readJsonResponse(res: Response): Promise<unknown> {
+async function readJson(res: Response): Promise<unknown> {
   const text = await res.text();
   if (!text) return null;
   try {
     return JSON.parse(text) as unknown;
   } catch {
-    return { ok: false, error: "Invalid JSON response from server" } satisfies ErrDTO;
+    return { ok: false, error: "Invalid JSON response" } satisfies ErrDTO;
   }
 }
 
-function extractErrorMessage(payload: unknown, status: number): string {
-  if (isErrDTO(payload)) return payload.error;
-  return `Request failed (${status})`;
+function clampInt(v: string, fallback: number, min: number, max: number) {
+  const n = Number.parseInt(v, 10);
+  if (Number.isNaN(n)) return fallback;
+  if (n < min) return min;
+  if (n > max) return max;
+  return n;
 }
 
 export default function SettingsClient() {
   const sp = useSearchParams();
 
+  // Prefer URL params, fall back to sessionStorage set by AppHome.
   const qpShop = sp.get("shop");
   const qpHost = sp.get("host");
 
-  const { shop: stShop, host: stHost } = getCtxFromStorage();
-  const shop = qpShop ?? stShop ?? "";
-  const host = qpHost ?? stHost ?? "";
+  const [shop, setShop] = useState<string>(qpShop ?? readStorage("os_shop") ?? "");
+  const [host, setHost] = useState<string>(qpHost ?? readStorage("os_host") ?? "");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (qpShop) window.sessionStorage.setItem("os_shop", qpShop);
-    if (qpHost) window.sessionStorage.setItem("os_host", qpHost);
+    if (qpShop) {
+      writeStorage("os_shop", qpShop);
+      setShop(qpShop);
+    }
+    if (qpHost) {
+      writeStorage("os_host", qpHost);
+      setHost(qpHost);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qpShop, qpHost]);
-
-  const qs = useMemo(() => {
-    const p = new URLSearchParams();
-    if (shop) p.set("shop", shop);
-    if (host) p.set("host", host);
-    const s = p.toString();
-    return s ? `?${s}` : "";
-  }, [shop, host]);
 
   const app = useMemo<ClientApplication | null>(() => {
     if (typeof window === "undefined") return null;
@@ -111,31 +100,25 @@ export default function SettingsClient() {
     const apiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY;
     if (!apiKey) return null;
 
-    return createApp({
-      apiKey,
-      host,
-      forceRedirect: true,
-    });
+    return createApp({ apiKey, host, forceRedirect: true });
   }, [host]);
 
-  async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(init?.headers ? (init.headers as Record<string, string>) : {}),
-    };
-
-    const res = app
-      ? await authenticatedFetch(app)(path, { ...init, headers })
-      : await fetch(path, { ...init, headers });
-
-    const payload = await readJsonResponse(res);
-
-    if (!res.ok) {
-      throw new Error(extractErrorMessage(payload, res.status));
+  // Helper: authenticated fetch when embedded, otherwise plain fetch (dev / non-embedded)
+  async function authedFetch(path: string, init?: RequestInit): Promise<Response> {
+    if (app) {
+      const af = authenticatedFetch(app);
+      return af(path, init);
     }
-
-    return payload as T;
+    return fetch(path, init);
   }
+
+  const qs = useMemo(() => {
+    const p = new URLSearchParams();
+    if (shop) p.set("shop", shop);
+    if (host) p.set("host", host);
+    const s = p.toString();
+    return s ? `?${s}` : "";
+  }, [shop, host]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -151,13 +134,26 @@ export default function SettingsClient() {
   async function load() {
     setLoading(true);
     setErr(null);
+    setOkMsg(null);
 
     try {
-      const payload = await fetchJSON<unknown>(`/api/app/settings${qs}`, { method: "GET" });
+      // If host is missing we *cannot* get a session token. Stop early with a useful message.
+      if (!host) {
+        throw new Error(
+          "Missing host. Open Settings from inside Shopify admin (or include ?host=…&shop=… in the URL).",
+        );
+      }
+
+      const res = await authedFetch(`/api/app/settings${qs}`, { method: "GET" });
+      const payload = await readJson(res);
+
+      if (!res.ok) {
+        const msg = isErrDTO(payload) ? payload.error : `Failed to load settings (${res.status})`;
+        throw new Error(msg);
+      }
 
       if (!isSettingsDTO(payload)) {
-        if (isErrDTO(payload)) throw new Error(payload.error);
-        throw new Error("Failed to load settings (unexpected payload)");
+        throw new Error("Failed to load settings (unexpected response).");
       }
 
       setTenantName(payload.tenantName ?? "");
@@ -175,7 +171,7 @@ export default function SettingsClient() {
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qs]);
+  }, [qs, host]);
 
   async function onSave() {
     setSaving(true);
@@ -183,27 +179,38 @@ export default function SettingsClient() {
     setOkMsg(null);
 
     try {
+      if (!host) {
+        throw new Error(
+          "Missing host. Open Settings from inside Shopify admin (or include ?host=…&shop=… in the URL).",
+        );
+      }
+
       const body = {
+        // Single source of truth:
         tenantName: tenantName.trim(),
         tenantLogoUrl: tenantLogoUrl.trim() || null,
+
         demoMode,
         delayHours,
         exportFrequencyMinutes,
 
-        // Optional backward compat if route still reads these:
+        // Backward compat if your API still expects these fields:
         portalTitle: null,
         portalLogoUrl: tenantLogoUrl.trim() || null,
       };
 
-      const payload = await fetchJSON<unknown>(`/api/app/settings${qs}`, {
+      const res = await authedFetch(`/api/app/settings${qs}`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
-      if (isErrDTO(payload)) throw new Error(payload.error);
-      // Accept ok:true even if empty
-      const ok = payload as SaveDTO;
-      if (ok.ok !== true) throw new Error("Failed to save settings");
+      const payload = await readJson(res);
+
+      if (!res.ok) {
+        const msg = isErrDTO(payload) ? payload.error : `Failed to save (${res.status})`;
+        throw new Error(msg);
+      }
 
       setOkMsg("Saved.");
       await load();
@@ -219,12 +226,13 @@ export default function SettingsClient() {
   return (
     <main className="min-h-screen bg-base-200 text-base-content">
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-4">
+        {/* Header row */}
         <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="space-y-1">
               <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
               <p className="text-sm opacity-70">
-                Configure portal branding and demo behavior for this tenant.
+                Update branding and demo behavior for this portal.
               </p>
             </div>
 
@@ -237,10 +245,10 @@ export default function SettingsClient() {
               ) : null}
 
               <button
-                className={`btn btn-primary btn-sm ${saving ? "btn-disabled" : ""}`}
+                className="btn btn-primary btn-sm"
+                type="button"
                 onClick={onSave}
                 disabled={saving || loading}
-                type="button"
               >
                 {saving ? "Saving…" : "Save changes"}
               </button>
@@ -260,11 +268,13 @@ export default function SettingsClient() {
           ) : null}
         </div>
 
+        {/* Two-card layout (like the original best version) */}
         <div className="grid md:grid-cols-2 gap-4">
+          {/* Branding */}
           <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-semibold">3PL Branding</h2>
-              <span className="badge badge-ghost">Portal title: {portalPreview}</span>
+              <h2 className="font-semibold">Branding</h2>
+              <span className="badge badge-ghost">{portalPreview}</span>
             </div>
 
             <label className="form-control w-full">
@@ -280,14 +290,14 @@ export default function SettingsClient() {
               />
               <div className="label">
                 <span className="label-text-alt opacity-70">
-                  Portal will display <span className="font-semibold">{portalPreview}</span>.
+                  The portal header will show “{portalPreview}”.
                 </span>
               </div>
             </label>
 
             <label className="form-control w-full">
               <div className="label">
-                <span className="label-text">3PL logo URL (optional)</span>
+                <span className="label-text">Logo URL (optional)</span>
               </div>
               <input
                 className="input input-bordered w-full"
@@ -296,9 +306,6 @@ export default function SettingsClient() {
                 placeholder="https://…"
                 disabled={loading}
               />
-              <div className="label">
-                <span className="label-text-alt opacity-70">Hosted image URL (SVG/PNG).</span>
-              </div>
             </label>
 
             <div className="flex items-center gap-3">
@@ -306,7 +313,7 @@ export default function SettingsClient() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={tenantLogoUrl.trim()}
-                  alt="3PL logo preview"
+                  alt="Logo preview"
                   className="w-10 h-10 rounded-lg border border-base-300 object-contain bg-base-200"
                 />
               ) : (
@@ -317,19 +324,20 @@ export default function SettingsClient() {
 
               <div className="text-sm">
                 <div className="font-semibold">{portalPreview}</div>
-                <div className="opacity-70">Header preview</div>
+                <div className="opacity-70">Preview</div>
               </div>
             </div>
           </div>
 
+          {/* Demo + defaults */}
           <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-3">
-            <h2 className="font-semibold">Demo mode</h2>
+            <h2 className="font-semibold">Demo &amp; defaults</h2>
 
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <div className="font-semibold">Enable demo mode</div>
                 <p className="text-sm opacity-70">
-                  Show sample rows when there are no live orders yet (useful for review + onboarding).
+                  Shows sample rows when there are no live orders yet.
                 </p>
               </div>
 
@@ -344,49 +352,40 @@ export default function SettingsClient() {
 
             <div className="divider my-2" />
 
-            <div className="space-y-2">
-              <div className="font-semibold">Order flow defaults</div>
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text">Default delay (hours)</span>
+              </div>
+              <input
+                className="input input-bordered w-full"
+                inputMode="numeric"
+                value={String(delayHours)}
+                onChange={(e) => setDelayHours(clampInt(e.target.value, delayHours, 0, 72))}
+                disabled={loading}
+              />
+              <div className="label">
+                <span className="label-text-alt opacity-70">
+                  Used when computing readyAt during ingestion.
+                </span>
+              </div>
+            </label>
 
-              <label className="form-control w-full">
-                <div className="label">
-                  <span className="label-text">Default delay (hours)</span>
-                </div>
-                <input
-                  className="input input-bordered w-full"
-                  inputMode="numeric"
-                  value={String(delayHours)}
-                  onChange={(e) => setDelayHours(toIntSafe(e.target.value, delayHours, 0, 72))}
-                  disabled={loading}
-                />
-                <div className="label">
-                  <span className="label-text-alt opacity-70">
-                    Used for initial “readyAt” computation during ingestion.
-                  </span>
-                </div>
-              </label>
-
-              <label className="form-control w-full">
-                <div className="label">
-                  <span className="label-text">Export refresh cadence (minutes)</span>
-                </div>
-                <input
-                  className="input input-bordered w-full"
-                  inputMode="numeric"
-                  value={String(exportFrequencyMinutes)}
-                  onChange={(e) =>
-                    setExportFrequencyMinutes(
-                      toIntSafe(e.target.value, exportFrequencyMinutes, 1, 240),
-                    )
-                  }
-                  disabled={loading}
-                />
-                <div className="label">
-                  <span className="label-text-alt opacity-70">
-                    UI refresh cadence for now (we’ll align to actual exports later).
-                  </span>
-                </div>
-              </label>
-            </div>
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text">Export refresh cadence (minutes)</span>
+              </div>
+              <input
+                className="input input-bordered w-full"
+                inputMode="numeric"
+                value={String(exportFrequencyMinutes)}
+                onChange={(e) =>
+                  setExportFrequencyMinutes(
+                    clampInt(e.target.value, exportFrequencyMinutes, 1, 240),
+                  )
+                }
+                disabled={loading}
+              />
+            </label>
           </div>
         </div>
 

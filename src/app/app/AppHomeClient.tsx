@@ -6,9 +6,7 @@ import createApp from "@shopify/app-bridge";
 import { Redirect } from "@shopify/app-bridge/actions";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
 import type { ClientApplication } from "@shopify/app-bridge";
-
 import Link from "next/link";
-
 
 // ---------- Types ----------
 type ContextOk = {
@@ -95,8 +93,14 @@ function normalizeStats(v: unknown): StatsResp {
     return {
       ok: true,
       counts,
-      lastExportAt: typeof anyV.lastExportAt === "string" || anyV.lastExportAt === null ? (anyV.lastExportAt as string | null) : undefined,
-      syncHealth: anyV.syncHealth === "OK" || anyV.syncHealth === "WARN" || anyV.syncHealth === "ERROR" ? (anyV.syncHealth as "OK" | "WARN" | "ERROR") : undefined,
+      lastExportAt:
+        typeof anyV.lastExportAt === "string" || anyV.lastExportAt === null
+          ? (anyV.lastExportAt as string | null)
+          : undefined,
+      syncHealth:
+        anyV.syncHealth === "OK" || anyV.syncHealth === "WARN" || anyV.syncHealth === "ERROR"
+          ? (anyV.syncHealth as "OK" | "WARN" | "ERROR")
+          : undefined,
       message: typeof anyV.message === "string" ? (anyV.message as string) : undefined,
     };
   }
@@ -112,7 +116,10 @@ function normalizeExceptions(v: unknown): ExceptionsResp {
   const anyV = v as { ok?: unknown; error?: unknown; items?: unknown };
 
   if (anyV.ok === true) return { ok: true, items: asArray<ExceptionRow>(anyV.items) };
-  return { ok: false, error: typeof anyV.error === "string" ? (anyV.error as string) : "Exceptions request failed" };
+  return {
+    ok: false,
+    error: typeof anyV.error === "string" ? (anyV.error as string) : "Exceptions request failed",
+  };
 }
 
 function normalizeExports(v: unknown): ExportsResp {
@@ -281,6 +288,23 @@ export default function AppHomeClient() {
     };
   }, [ctx?.shop, afetch]);
 
+  // ---- Settings link (safe; no undefined) ----
+  const settingsHref = useMemo(() => {
+    const s = ctx?.shop ?? shop;
+    const h = ctx?.host ?? host;
+
+    if (s && h) {
+      return `/app/settings?shop=${encodeURIComponent(s)}&host=${encodeURIComponent(h)}&embedded=1`;
+    }
+    return "/app/settings";
+  }, [ctx?.shop, ctx?.host, shop, host]);
+
+  const settingsEnabled = useMemo(() => {
+    const s = ctx?.shop ?? shop;
+    const h = ctx?.host ?? host;
+    return Boolean(s && h);
+  }, [ctx?.shop, ctx?.host, shop, host]);
+
   // UI
   if (ctxError) {
     return (
@@ -306,41 +330,34 @@ export default function AppHomeClient() {
     <div className="p-6 space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-  <div className="space-y-1">
-    <h1 className="text-xl font-semibold">{ctx.tenantName} Portal</h1>
-    <p className="text-sm opacity-70">
-      Order status, issues that need action, and recent exports — all in one place.
-    </p>
-  </div>
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold">{ctx.tenantName} Portal</h1>
+          <p className="text-sm opacity-70">
+            Order status, issues that need action, and recent exports — all in one place.
+          </p>
+        </div>
 
-  {/* Right side: Store + Needs attention + Settings */}
-  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-    <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
-      <div className="opacity-70 text-xs">Store</div>
-      <div className="font-semibold">{ctx.shop}</div>
-    </div>
+        {/* Right side: Store + Needs attention + Settings */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
+            <div className="opacity-70 text-xs">Store</div>
+            <div className="font-semibold">{ctx.shop}</div>
+          </div>
 
-    <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
-      <div className="opacity-70 text-xs">Needs attention</div>
-      <div className="font-semibold">
-        {attentionCount === null ? "—" : attentionCount}
+          <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
+            <div className="opacity-70 text-xs">Needs attention</div>
+            <div className="font-semibold">{attentionCount === null ? "—" : attentionCount}</div>
+          </div>
+
+          <Link
+            href={settingsHref}
+            className={`btn btn-ghost btn-sm ${settingsEnabled ? "" : "btn-disabled"}`}
+            aria-disabled={!settingsEnabled}
+          >
+            Settings
+          </Link>
+        </div>
       </div>
-    </div>
-
-    <Link
-  href={{
-    pathname: "/app/settings",
-    query: { shop: ctx.shop, host: ctx.host, embedded: "1" },
-  }}
-  className="btn btn-ghost btn-sm"
->
-  Settings
-</Link>
-
-  </div>
-</div>
-
-
 
       {/* Top grid */}
       <div className="grid lg:grid-cols-3 gap-4">
@@ -407,7 +424,9 @@ export default function AppHomeClient() {
           <div className="card-body space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold">Orders Needing Attention</h2>
-              <span className="text-xs opacity-70">{exceptions && exceptions.ok ? exceptions.items.length : "—"} items</span>
+              <span className="text-xs opacity-70">
+                {exceptions && exceptions.ok ? exceptions.items.length : "—"} items
+              </span>
             </div>
 
             {!exceptions ? (
