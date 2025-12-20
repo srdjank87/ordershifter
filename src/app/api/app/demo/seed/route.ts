@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     const now = new Date();
-    const delayHours = settings.delayHours ?? 6;
+    const delayHours = settings?.delayHours ?? 6;
 
     // Create 8 demo orders across states
     const demoOrders = [
