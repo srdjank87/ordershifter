@@ -306,31 +306,33 @@ export default function AppHomeClient() {
     <div className="p-6 space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold">{ctx.tenantName} Portal</h1>
-          <p className="text-sm opacity-70">
-            Order status, issues that need action, and recent exports — all in one place.
-          </p>
-        </div>
+  <div className="space-y-1">
+    <h1 className="text-xl font-semibold">{ctx.tenantName} Portal</h1>
+    <p className="text-sm opacity-70">
+      Order status, issues that need action, and recent exports — all in one place.
+    </p>
+  </div>
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
-            <div className="opacity-70 text-xs">Store</div>
-            <div className="font-semibold">{ctx.shop}</div>
-          </div>
+  {/* Right side: Store + Needs attention + Settings */}
+  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+    <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
+      <div className="opacity-70 text-xs">Store</div>
+      <div className="font-semibold">{ctx.shop}</div>
+    </div>
 
-          <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
-            <div className="opacity-70 text-xs">Needs attention</div>
-            <div className="font-semibold">{attentionCount === null ? "—" : attentionCount}</div>
-          </div>
-        </div>
+    <div className="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-sm">
+      <div className="opacity-70 text-xs">Needs attention</div>
+      <div className="font-semibold">
+        {attentionCount === null ? "—" : attentionCount}
       </div>
+    </div>
 
-      <div className="flex items-center gap-2">
-  <Link href="/app/settings" className="btn btn-ghost btn-sm">
-    Settings
-  </Link>
+    <Link href="/app/settings" className="btn btn-ghost btn-sm">
+      Settings
+    </Link>
+  </div>
 </div>
+
 
 
       {/* Top grid */}

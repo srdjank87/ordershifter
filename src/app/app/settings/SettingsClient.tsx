@@ -10,7 +10,6 @@ type SettingsDTO = {
   ok: true;
   tenantId: string;
   tenantName: string;
-  // Feature flags / settings (adjust to your actual DB fields)
   demoMode: boolean;
   portalTitle: string | null;
   portalLogoUrl: string | null;
@@ -25,12 +24,36 @@ function first(p: string | string[] | null | undefined) {
   return Array.isArray(p) ? p[0] ?? "" : p;
 }
 
+function safeGetSession(key: string) {
+  try {
+    return typeof window !== "undefined" ? window.sessionStorage.getItem(key) ?? "" : "";
+  } catch {
+    return "";
+  }
+}
+
 export default function SettingsClient() {
   const sp = useSearchParams();
 
-  const shop = first(sp.get("shop"));
-  const host = first(sp.get("host"));
-  const embedded = first(sp.get("embedded")) || "1";
+  // Prefer URL params; fall back to sessionStorage (set by AppHomeClient)
+  const urlShop = first(sp.get("shop"));
+  const urlHost = first(sp.get("host"));
+  const urlEmbedded = first(sp.get("embedded"));
+
+  const [ctxShop, setCtxShop] = useState(urlShop);
+  const [ctxHost, setCtxHost] = useState(urlHost);
+  const [ctxEmbedded, setCtxEmbedded] = useState(urlEmbedded || "");
+
+  // On mount + when URL changes, hydrate from sessionStorage if missing
+  useEffect(() => {
+    const ssShop = safeGetSession("os_shop");
+    const ssHost = safeGetSession("os_host");
+    const ssEmbedded = safeGetSession("os_embedded");
+
+    setCtxShop(urlShop || ssShop || "");
+    setCtxHost(urlHost || ssHost || "");
+    setCtxEmbedded(urlEmbedded || ssEmbedded || "1");
+  }, [urlShop, urlHost, urlEmbedded]);
 
   const apiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY;
 
@@ -45,32 +68,34 @@ export default function SettingsClient() {
   const [portalLogoUrl, setPortalLogoUrl] = useState<string>("");
   const [delayHours, setDelayHours] = useState<number>(6);
   const [exportFrequencyMinutes, setExportFrequencyMinutes] = useState<number>(15);
-
   const [tenantName, setTenantName] = useState<string>("");
 
   // Build the authenticated fetch (App Bridge session tokens)
   const authedFetch = useMemo(() => {
-    if (!apiKey || !host) return null;
+    if (!apiKey || !ctxHost) return null;
 
     const app = createApp({
       apiKey,
-      host,
+      host: ctxHost,
       forceRedirect: true,
     });
 
     return authenticatedFetch(app);
-  }, [apiKey, host]);
+  }, [apiKey, ctxHost]);
 
   async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
-    // If embedded, use session-token authenticated fetch
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    };
+
+    // If embedded + we have host/apiKey, use session-token authenticated fetch
     if (authedFetch) {
       const res = await authedFetch(url, {
         ...(init ?? {}),
-        headers: {
-          "Content-Type": "application/json",
-          ...(init?.headers ?? {}),
-        },
+        headers,
       });
+
       const text = await res.text();
       if (!text) throw new Error(`Empty response (${res.status})`);
       return JSON.parse(text) as T;
@@ -79,12 +104,10 @@ export default function SettingsClient() {
     // Fallback (non-embedded dev / direct browser)
     const res = await fetch(url, {
       ...(init ?? {}),
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers ?? {}),
-      },
+      headers,
       cache: "no-store",
     });
+
     const text = await res.text();
     if (!text) throw new Error(`Empty response (${res.status})`);
     return JSON.parse(text) as T;
@@ -92,11 +115,11 @@ export default function SettingsClient() {
 
   const qs = useMemo(() => {
     const p = new URLSearchParams();
-    if (shop) p.set("shop", shop);
-    if (host) p.set("host", host);
-    if (embedded) p.set("embedded", embedded);
+    if (ctxShop) p.set("shop", ctxShop);
+    if (ctxHost) p.set("host", ctxHost);
+    if (ctxEmbedded) p.set("embedded", ctxEmbedded);
     return p.toString() ? `?${p.toString()}` : "";
-  }, [shop, host, embedded]);
+  }, [ctxShop, ctxHost, ctxEmbedded]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,6 +128,13 @@ export default function SettingsClient() {
       setLoading(true);
       setErr(null);
       setOkMsg(null);
+
+      // If we still don’t have host/apiKey, App Bridge can’t mint tokens.
+      if (!apiKey || !ctxHost) {
+        setErr("Missing embedded app context (host). Open Settings from inside the embedded app dashboard.");
+        setLoading(false);
+        return;
+      }
 
       try {
         const data = await fetchJSON<SettingsDTO | ErrDTO>(`/api/app/settings${qs}`);
@@ -142,7 +172,7 @@ export default function SettingsClient() {
     return () => {
       cancelled = true;
     };
-  }, [qs]); // re-run if shop/host changes
+  }, [qs, apiKey, ctxHost]); // re-run if ctx changes
 
   async function onSave() {
     setSaving(true);
@@ -184,7 +214,8 @@ export default function SettingsClient() {
             <div className="space-y-1">
               <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
               <p className="text-sm opacity-70">
-                Configure how this portal behaves for <span className="font-semibold">{tenantName || "your 3PL"}</span>.
+                Configure how this portal behaves for{" "}
+                <span className="font-semibold">{tenantName || "your 3PL"}</span>.
               </p>
             </div>
 
@@ -236,9 +267,7 @@ export default function SettingsClient() {
             <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-4">
               <div className="space-y-1">
                 <h2 className="text-base md:text-lg font-semibold">Portal Branding</h2>
-                <p className="text-sm opacity-70">
-                  What merchants see at the top of your portal.
-                </p>
+                <p className="text-sm opacity-70">What merchants see at the top of your portal.</p>
               </div>
 
               <div className="space-y-2">
@@ -262,9 +291,7 @@ export default function SettingsClient() {
                   value={portalLogoUrl}
                   onChange={(e) => setPortalLogoUrl(e.target.value)}
                 />
-                <p className="text-xs opacity-70">
-                  Use a public URL (PNG/SVG). We can add uploads later.
-                </p>
+                <p className="text-xs opacity-70">Use a public URL (PNG/SVG). We can add uploads later.</p>
               </div>
 
               <div className="bg-base-200 border border-base-300 rounded-xl p-3">
@@ -329,9 +356,7 @@ export default function SettingsClient() {
                   value={exportFrequencyMinutes}
                   onChange={(e) => setExportFrequencyMinutes(Number(e.target.value || 0))}
                 />
-                <p className="text-xs opacity-70">
-                  How often OrderShifter batches and exports validated orders.
-                </p>
+                <p className="text-xs opacity-70">How often OrderShifter batches and exports validated orders.</p>
               </div>
 
               <div className="bg-base-200 border border-base-300 rounded-xl p-3 space-y-2">
@@ -366,8 +391,8 @@ export default function SettingsClient() {
                 <div className="space-y-1">
                   <p className="font-semibold">What’s next</p>
                   <p className="text-sm opacity-80">
-                    Next we’ll wire up ingestion so this portal reflects real Shopify activity.
-                    While we wait on protected data access, demo mode lets Shopify reviewers click around and see a “real” app.
+                    Next we’ll wire up ingestion so this portal reflects real Shopify activity. While we wait on protected
+                    data access, demo mode lets Shopify reviewers click around and see a “real” app.
                   </p>
                   <p className="text-xs opacity-70">
                     Tip: Keep demo mode ON for review; turn it OFF once order ingestion is approved and live.
@@ -381,8 +406,8 @@ export default function SettingsClient() {
         {/* Footer actions */}
         <div className="flex items-center justify-between text-xs opacity-70 pt-2">
           <div>
-            Embedded: <span className="font-semibold">{embedded || "0"}</span> • Shop:{" "}
-            <span className="font-semibold">{shop || "(none)"}</span>
+            Embedded: <span className="font-semibold">{ctxEmbedded || "0"}</span> • Shop:{" "}
+            <span className="font-semibold">{ctxShop || "(none)"}</span>
           </div>
           <div>OrderShifter • Settings</div>
         </div>
