@@ -43,6 +43,7 @@ model Tenant {
   id              String            @id @default(cuid())
   name            String
   slug            String            @unique
+  logoUrl         String?
   settings        TenantSettings?
   users           User[]
   merchants       MerchantAccount[]
@@ -60,9 +61,10 @@ model TenantSettings {
   tenantId   String   @unique
   tenant     Tenant   @relation(fields: [tenantId], references: [id])
 
-  delayHours Int      @default(6)
-  timezone   String   @default("America/Toronto")
-  exportMode String   @default("CSV_DOWNLOAD")
+  delayHours              Int     @default(6)
+  exportFrequencyMinutes  Int     @default(15)
+  timezone                String  @default("America/Toronto")
+  exportMode              String  @default("CSV_DOWNLOAD")
 
   // ✅ add this
   demoMode   Boolean  @default(false)

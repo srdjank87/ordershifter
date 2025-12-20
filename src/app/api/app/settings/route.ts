@@ -6,6 +6,9 @@ type SettingsPayload = {
   demoMode?: boolean | string | null;
   tenantName?: string | null;
   name?: string | null; // allow either key (in case UI uses "name")
+  tenantLogoUrl?: string | null;
+  delayHours?: number;
+  exportFrequencyMinutes?: number;
 };
 
 function parseDemoMode(input: unknown): boolean | undefined {
@@ -55,7 +58,7 @@ export async function GET(req: Request) {
 
     const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
-      select: { id: true, name: true, demoMode: true },
+      include: { settings: true },
     });
 
     if (!tenant) {
@@ -65,7 +68,16 @@ export async function GET(req: Request) {
       );
     }
 
-    return NextResponse.json({ ok: true, tenant });
+    // Return the shape expected by the frontend
+    return NextResponse.json({
+      ok: true,
+      tenantId: tenant.id,
+      tenantName: tenant.name,
+      tenantLogoUrl: tenant.logoUrl,
+      demoMode: tenant.demoMode,
+      delayHours: tenant.settings?.delayHours ?? 2,
+      exportFrequencyMinutes: tenant.settings?.exportFrequencyMinutes ?? 15,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ ok: false, error: message }, { status: 400 });
@@ -88,26 +100,62 @@ export async function POST(req: Request) {
 
     const demoModeParsed = parseDemoMode(body.demoMode);
     const tenantNameParsed = parseTenantName(body.tenantName ?? body.name);
+    const logoUrl = typeof body.tenantLogoUrl === "string" ? body.tenantLogoUrl.trim() || null : undefined;
 
-    // If nothing valid was provided, don’t overwrite anything.
-    if (demoModeParsed === undefined && tenantNameParsed === undefined) {
-      const tenant = await prisma.tenant.findUnique({
+    // Update Tenant
+    if (demoModeParsed !== undefined || tenantNameParsed !== undefined || logoUrl !== undefined) {
+      await prisma.tenant.update({
         where: { id: tenantId },
-        select: { id: true, name: true, demoMode: true },
+        data: {
+          ...(demoModeParsed !== undefined ? { demoMode: demoModeParsed } : {}),
+          ...(tenantNameParsed !== undefined ? { name: tenantNameParsed } : {}),
+          ...(logoUrl !== undefined ? { logoUrl } : {}),
+        },
       });
-      return NextResponse.json({ ok: true, tenant });
     }
 
-    const updated = await prisma.tenant.update({
+    // Update TenantSettings if any settings fields are provided
+    const settingsUpdate: Record<string, number> = {};
+    if (body.delayHours !== undefined && typeof body.delayHours === "number") {
+      settingsUpdate.delayHours = body.delayHours;
+    }
+    if (body.exportFrequencyMinutes !== undefined && typeof body.exportFrequencyMinutes === "number") {
+      settingsUpdate.exportFrequencyMinutes = body.exportFrequencyMinutes;
+    }
+
+    if (Object.keys(settingsUpdate).length > 0) {
+      await prisma.tenantSettings.upsert({
+        where: { tenantId },
+        update: settingsUpdate,
+        create: {
+          tenantId,
+          ...settingsUpdate,
+        },
+      });
+    }
+
+    // Reload and return the updated settings in the expected format
+    const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
-      data: {
-        ...(demoModeParsed !== undefined ? { demoMode: demoModeParsed } : {}),
-        ...(tenantNameParsed !== undefined ? { name: tenantNameParsed } : {}),
-      },
-      select: { id: true, name: true, demoMode: true },
+      include: { settings: true },
     });
 
-    return NextResponse.json({ ok: true, tenant: updated });
+    if (!tenant) {
+      return NextResponse.json(
+        { ok: false, error: "Tenant not found after update" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      tenantId: tenant.id,
+      tenantName: tenant.name,
+      tenantLogoUrl: tenant.logoUrl,
+      demoMode: tenant.demoMode,
+      delayHours: tenant.settings?.delayHours ?? 2,
+      exportFrequencyMinutes: tenant.settings?.exportFrequencyMinutes ?? 15,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ ok: false, error: message }, { status: 400 });
