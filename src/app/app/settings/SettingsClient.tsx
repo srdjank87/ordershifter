@@ -1,4 +1,3 @@
-// src/app/app/settings/SettingsClient.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -44,7 +43,6 @@ export default function SettingsClient() {
   const [ctxHost, setCtxHost] = useState(urlHost);
   const [ctxEmbedded, setCtxEmbedded] = useState(urlEmbedded || "");
 
-  // On mount + when URL changes, hydrate from sessionStorage if missing
   useEffect(() => {
     const ssShop = safeGetSession("os_shop");
     const ssHost = safeGetSession("os_host");
@@ -89,25 +87,14 @@ export default function SettingsClient() {
       ...(init?.headers ?? {}),
     };
 
-    // If embedded + we have host/apiKey, use session-token authenticated fetch
     if (authedFetch) {
-      const res = await authedFetch(url, {
-        ...(init ?? {}),
-        headers,
-      });
-
+      const res = await authedFetch(url, { ...(init ?? {}), headers });
       const text = await res.text();
       if (!text) throw new Error(`Empty response (${res.status})`);
       return JSON.parse(text) as T;
     }
 
-    // Fallback (non-embedded dev / direct browser)
-    const res = await fetch(url, {
-      ...(init ?? {}),
-      headers,
-      cache: "no-store",
-    });
-
+    const res = await fetch(url, { ...(init ?? {}), headers, cache: "no-store" });
     const text = await res.text();
     if (!text) throw new Error(`Empty response (${res.status})`);
     return JSON.parse(text) as T;
@@ -121,58 +108,57 @@ export default function SettingsClient() {
     return p.toString() ? `?${p.toString()}` : "";
   }, [ctxShop, ctxHost, ctxEmbedded]);
 
+  function applySettings(s: SettingsDTO) {
+    setTenantName(s.tenantName || "");
+    setDemoMode(!!s.demoMode);
+    setPortalTitle(s.portalTitle ?? "");
+    setPortalLogoUrl(s.portalLogoUrl ?? "");
+    setDelayHours(s.delayHours ?? 6);
+    setExportFrequencyMinutes(s.exportFrequencyMinutes ?? 15);
+  }
+
+  async function loadSettings() {
+    setLoading(true);
+    setErr(null);
+    setOkMsg(null);
+
+    if (!apiKey || !ctxHost) {
+      setErr(
+        "Missing embedded app context (host). Open Settings from inside the embedded app dashboard."
+      );
+      setLoading(false);
+      return;
+    }
+
+    const data = await fetchJSON<SettingsDTO | ErrDTO>(`/api/app/settings${qs}`);
+    if (!data || typeof data !== "object") throw new Error("Invalid response");
+
+    if ((data as ErrDTO).ok === false) {
+      throw new Error((data as ErrDTO).error || "Failed to load settings");
+    }
+
+    applySettings(data as SettingsDTO);
+    setLoading(false);
+  }
+
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
-      setLoading(true);
-      setErr(null);
-      setOkMsg(null);
-
-      // If we still don’t have host/apiKey, App Bridge can’t mint tokens.
-      if (!apiKey || !ctxHost) {
-        setErr("Missing embedded app context (host). Open Settings from inside the embedded app dashboard.");
-        setLoading(false);
-        return;
-      }
-
+    (async () => {
       try {
-        const data = await fetchJSON<SettingsDTO | ErrDTO>(`/api/app/settings${qs}`);
-
-        if (cancelled) return;
-
-        if (!data || typeof data !== "object") {
-          throw new Error("Invalid response");
-        }
-
-        if ((data as ErrDTO).ok === false) {
-          setErr((data as ErrDTO).error || "Failed to load settings");
-          setLoading(false);
-          return;
-        }
-
-        const s = data as SettingsDTO;
-
-        setTenantName(s.tenantName || "");
-        setDemoMode(!!s.demoMode);
-        setPortalTitle(s.portalTitle ?? "");
-        setPortalLogoUrl(s.portalLogoUrl ?? "");
-        setDelayHours(s.delayHours ?? 6);
-        setExportFrequencyMinutes(s.exportFrequencyMinutes ?? 15);
-
-        setLoading(false);
+        await loadSettings();
       } catch (e) {
         if (cancelled) return;
         setErr(e instanceof Error ? e.message : "Failed to load settings");
         setLoading(false);
       }
-    }
+    })();
 
-    load();
     return () => {
       cancelled = true;
     };
-  }, [qs, apiKey, ctxHost]); // re-run if ctx changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qs, apiKey, ctxHost]);
 
   async function onSave() {
     setSaving(true);
@@ -180,12 +166,22 @@ export default function SettingsClient() {
     setOkMsg(null);
 
     try {
+      if (!apiKey || !ctxHost) {
+        throw new Error("Missing embedded app context (host). Open Settings from inside the embedded app.");
+      }
+
+      const cleanedTenantName = tenantName.trim();
+
       const payload = {
+        // IMPORTANT: include tenantName so it persists
+        tenantName: cleanedTenantName || null,
+
         demoMode,
         portalTitle: portalTitle.trim() || null,
         portalLogoUrl: portalLogoUrl.trim() || null,
-        delayHours,
-        exportFrequencyMinutes,
+
+        delayHours: Number.isFinite(delayHours) ? delayHours : 6,
+        exportFrequencyMinutes: Number.isFinite(exportFrequencyMinutes) ? exportFrequencyMinutes : 15,
       };
 
       const data = await fetchJSON<{ ok: true } | ErrDTO>(`/api/app/settings${qs}`, {
@@ -195,15 +191,25 @@ export default function SettingsClient() {
 
       if (data.ok === false) {
         setErr(data.error || "Failed to save");
-      } else {
-        setOkMsg("Saved.");
+        setSaving(false);
+        return;
       }
+
+      // Re-fetch to ensure the UI reflects DB truth (and avoids “snapping back”)
+      await loadSettings();
+      setOkMsg("Saved.");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to save");
     } finally {
       setSaving(false);
     }
   }
+
+  const computedPortalTitle = portalTitle?.trim()
+    ? portalTitle.trim()
+    : `${tenantName?.trim() ? tenantName.trim() : "Your 3PL"} Portal`;
+
+  const canSave = !loading && !saving && !!apiKey && !!ctxHost;
 
   return (
     <main className="min-h-screen bg-base-200 text-base-content">
@@ -223,7 +229,7 @@ export default function SettingsClient() {
               <button
                 className="btn btn-primary btn-sm md:btn-md"
                 onClick={onSave}
-                disabled={loading || saving}
+                disabled={!canSave}
               >
                 {saving ? (
                   <>
@@ -263,6 +269,32 @@ export default function SettingsClient() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
+            {/* 3PL Identity */}
+            <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-base md:text-lg font-semibold">3PL Identity</h2>
+                <p className="text-sm opacity-70">Used for portal naming and branding defaults.</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">3PL name</label>
+                <input
+                  className="input input-bordered w-full"
+                  placeholder="Acme Fulfillment"
+                  value={tenantName}
+                  onChange={(e) => setTenantName(e.target.value)}
+                />
+                <p className="text-xs opacity-70">
+                  This is what merchants will recognize. You can change it later.
+                </p>
+              </div>
+
+              <div className="bg-base-200 border border-base-300 rounded-xl p-3">
+                <p className="text-sm font-semibold mb-1">Portal name preview</p>
+                <p className="text-sm opacity-80">{computedPortalTitle}</p>
+              </div>
+            </div>
+
             {/* Portal Branding */}
             <div className="bg-base-100 border border-base-300 rounded-xl p-4 md:p-5 shadow-sm space-y-4">
               <div className="space-y-1">
@@ -271,7 +303,7 @@ export default function SettingsClient() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Portal title</label>
+                <label className="text-sm font-semibold">Portal title (optional override)</label>
                 <input
                   className="input input-bordered w-full"
                   placeholder="Acme Fulfillment Portal"
@@ -279,7 +311,7 @@ export default function SettingsClient() {
                   onChange={(e) => setPortalTitle(e.target.value)}
                 />
                 <p className="text-xs opacity-70">
-                  Leave blank to use “{tenantName || "Your 3PL"} Portal”.
+                  Leave blank to use “{tenantName?.trim() ? tenantName.trim() : "Your 3PL"} Portal”.
                 </p>
               </div>
 
@@ -311,11 +343,7 @@ export default function SettingsClient() {
                   </div>
 
                   <div>
-                    <div className="font-semibold leading-tight">
-                      {portalTitle?.trim()
-                        ? portalTitle.trim()
-                        : `${tenantName || "Your 3PL"} Portal`}
-                    </div>
+                    <div className="font-semibold leading-tight">{computedPortalTitle}</div>
                     <div className="text-xs opacity-70">Merchant-facing view</div>
                   </div>
                 </div>
