@@ -12,31 +12,33 @@ export async function GET(req: Request) {
     });
 
     if (!merchant) {
-      return NextResponse.json({ ok: true, items: [] });
+      return NextResponse.json({ ok: true, items: [] }, { status: 200 });
     }
 
-    const items = await prisma.orderException.findMany({
-      where: { merchantId: merchant.id, status: "OPEN" },
+    const rows = await prisma.orderException.findMany({
+      where: { merchantId: merchant.id },
       orderBy: { createdAt: "desc" },
       take: 25,
       select: {
         id: true,
+        createdAt: true,
         code: true,
         message: true,
         status: true,
-        createdAt: true,
       },
     });
 
-    return NextResponse.json({
-      ok: true,
-      items: items.map((x) => ({
-        ...x,
-        createdAt: x.createdAt.toISOString(),
-      })),
-    });
+    const items = rows.map((r) => ({
+      id: r.id,
+      createdAt: r.createdAt.toISOString(),
+      code: r.code,
+      message: r.message,
+      status: r.status,
+    }));
+
+    return NextResponse.json({ ok: true, items }, { status: 200 });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Exceptions failed";
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+    const msg = e instanceof Error ? e.message : "Exceptions fetch failed";
+    return NextResponse.json({ ok: false, error: msg }, { status: 401 });
   }
 }

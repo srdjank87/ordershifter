@@ -327,9 +327,16 @@ export default function AppHomeClient() {
       </div>
     </div>
 
-    <Link href="/app/settings" className="btn btn-ghost btn-sm">
-      Settings
-    </Link>
+    <Link
+  href={{
+    pathname: "/app/settings",
+    query: { shop: ctx.shop, host: ctx.host, embedded: "1" },
+  }}
+  className="btn btn-ghost btn-sm"
+>
+  Settings
+</Link>
+
   </div>
 </div>
 

@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireShopifyAuth } from "@/lib/shopify/requireShopifyAuth";
 
 export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
-    const shop = url.searchParams.get("shop");
-    if (!shop) return NextResponse.json({ ok: false, error: "Missing shop" }, { status: 400 });
+    const { shop } = await requireShopifyAuth(req);
 
     const merchant = await prisma.merchantAccount.findUnique({
       where: { shopDomain: shop },
-      select: { id: true, tenantId: true },
+      select: { id: true },
     });
 
     if (!merchant) {
-      return NextResponse.json({ ok: true, items: [] });
+      return NextResponse.json({ ok: true, items: [] }, { status: 200 });
     }
 
     const rows = await prisma.exportLog.findMany({
@@ -36,9 +35,9 @@ export async function GET(req: Request) {
       notes: r.summary ?? r.error ?? null,
     }));
 
-    return NextResponse.json({ ok: true, items });
+    return NextResponse.json({ ok: true, items }, { status: 200 });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Exports fetch failed";
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+    return NextResponse.json({ ok: false, error: msg }, { status: 401 });
   }
 }

@@ -12,10 +12,10 @@ export async function GET(req: Request) {
     });
 
     if (!merchant) {
-      return NextResponse.json({ ok: true, items: [] });
+      return NextResponse.json({ ok: true, items: [] }, { status: 200 });
     }
 
-    const items = await prisma.shopifyOrder.findMany({
+    const rows = await prisma.shopifyOrder.findMany({
       where: { merchantId: merchant.id },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -28,15 +28,21 @@ export async function GET(req: Request) {
       },
     });
 
-    return NextResponse.json({
-      ok: true,
-      items: items.map((o) => ({
-        ...o,
-        createdAtShopify: o.createdAtShopify ? o.createdAtShopify.toISOString() : null,
-      })),
-    });
+    return NextResponse.json(
+      {
+        ok: true,
+        items: rows.map((o) => ({
+          id: o.id,
+          shopifyOrderId: o.shopifyOrderId,
+          shopifyName: o.shopifyName,
+          state: o.state,
+          createdAtShopify: o.createdAtShopify ? o.createdAtShopify.toISOString() : null,
+        })),
+      },
+      { status: 200 }
+    );
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Orders failed";
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+    return NextResponse.json({ ok: false, error: msg }, { status: 401 });
   }
 }
