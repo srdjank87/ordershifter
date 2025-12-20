@@ -17,26 +17,24 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "OrderShifter",
-  description: "OrderShifter helps 3PLs automate Shopify order flows, reduce exceptions, and retain merchants.",
+  description:
+    "OrderShifter helps 3PLs automate Shopify order flows, reduce exceptions, and retain merchants.",
   icons: {
-    icon: "/favicon.svg", // or "/favicon.ico"
+    icon: "/favicon.svg",
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" data-theme="light">
-<head>
-        {/* Shopify embedded admin runtime checks expect a literal script tag */}
-        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" defer />
+      <head>
+        {/* Shopify embedded runtime checks expect App Bridge CDN */}
+        <Script
+          src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
+          strategy="afterInteractive"
+        />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
     </html>

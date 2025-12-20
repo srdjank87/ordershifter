@@ -52,6 +52,7 @@ model Tenant {
   updatedAt       DateTime          @updatedAt
   orderExceptions OrderException[]
   exportLogs      ExportLog[]
+  demoMode        Boolean           @default(false)
 }
 
 model TenantSettings {
