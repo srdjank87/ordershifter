@@ -8,36 +8,57 @@ export default function AppBridgeTestPage() {
   useEffect(() => {
     const results: Record<string, boolean | string> = {};
 
-    // Check 1: Is App Bridge CDN script loaded?
+    // Check 1: Is App Bridge CDN script loaded (creates window.shopify)?
     results.cdnScriptLoaded = typeof window !== "undefined" && "shopify" in window;
 
-    // Check 2: Can we access createApp?
+    // Check 2: Can we access createApp from CDN?
     try {
       // @ts-expect-error - checking global shopify object
       const shopifyGlobal = window.shopify;
-      results.createAppAvailable = typeof shopifyGlobal?.createApp === "function";
+      results.cdnCreateAppAvailable = typeof shopifyGlobal?.createApp === "function";
     } catch {
-      results.createAppAvailable = false;
+      results.cdnCreateAppAvailable = false;
     }
 
-    // Check 3: Is NEXT_PUBLIC_SHOPIFY_API_KEY available?
+    // Check 3: Can we import from npm package?
+    try {
+      // This dynamically imports the npm package to test if it works
+      import("@shopify/app-bridge").then((module) => {
+        const npmPackageWorks = typeof module.default === "function" || typeof module.createApp === "function";
+        setChecks((prev) => ({ ...prev, npmPackageAvailable: npmPackageWorks }));
+      }).catch(() => {
+        setChecks((prev) => ({ ...prev, npmPackageAvailable: false }));
+      });
+    } catch {
+      results.npmPackageAvailable = false;
+    }
+
+    // Check 4: Is NEXT_PUBLIC_SHOPIFY_API_KEY available?
     results.apiKeyAvailable = Boolean(process.env.NEXT_PUBLIC_SHOPIFY_API_KEY);
     results.apiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY || "NOT SET";
 
-    // Check 4: Check window location
+    // Check 5: Check window location
     results.currentUrl = typeof window !== "undefined" ? window.location.href : "SSR";
 
-    // Check 5: Check if in iframe
+    // Check 6: Check if in iframe
     results.inIframe = typeof window !== "undefined" ? window.self !== window.top : false;
 
-    // Check 6: Check document scripts
+    // Check 7: Check document scripts
     if (typeof document !== "undefined") {
       const scripts = Array.from(document.querySelectorAll("script")).map((s) => s.src);
       const appBridgeScript = scripts.find((src) => src.includes("app-bridge"));
       results.appBridgeScriptSrc = appBridgeScript || "NOT FOUND";
+
+      // Check if script tag was injected by our inline script
+      results.scriptTagCount = scripts.filter((src) => src.includes("app-bridge")).length.toString();
     } else {
       results.appBridgeScriptSrc = "SSR - no document";
+      results.scriptTagCount = "0";
     }
+
+    // Check 8: Check for our custom flags
+    results.customCDNLoadedFlag = typeof window !== "undefined" && "shopifyAppBridgeCDNLoaded" in window;
+    results.customLoadedFlag = typeof window !== "undefined" && "shopifyAppBridgeLoaded" in window;
 
     setChecks(results);
   }, []);
@@ -84,23 +105,49 @@ export default function AppBridgeTestPage() {
 
         <div className="card bg-base-200 shadow-xl">
           <div className="card-body">
-            <h2 className="card-title">What Shopify Checks For</h2>
-            <ul className="list-disc list-inside space-y-2 text-sm opacity-80">
-              <li>
-                <strong>CDN Script:</strong> The script tag loading{" "}
-                <code>app-bridge-latest.min.js</code> from Shopify's CDN
-              </li>
-              <li>
-                <strong>Script Location:</strong> Loaded in <code>&lt;head&gt;</code> with{" "}
-                <code>beforeInteractive</code> strategy
-              </li>
-              <li>
-                <strong>Global Object:</strong> The <code>window.shopify</code> object should be available
-              </li>
-              <li>
-                <strong>Initialization:</strong> Your code should call <code>createApp()</code> with apiKey and host
-              </li>
-            </ul>
+            <h2 className="card-title">Understanding the Two Approaches</h2>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">CDN Script (Legacy)</h3>
+                <ul className="list-disc list-inside space-y-2 text-sm opacity-80">
+                  <li>
+                    <strong>CDN Script:</strong> <code>&lt;script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"&gt;</code>
+                  </li>
+                  <li>
+                    <strong>Global Object:</strong> Creates <code>window.shopify</code> object
+                  </li>
+                  <li>
+                    <strong>What Shopify's automated checker looks for</strong>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-2">npm Package (Modern - Recommended)</h3>
+                <ul className="list-disc list-inside space-y-2 text-sm opacity-80">
+                  <li>
+                    <strong>Install:</strong> <code>npm install @shopify/app-bridge</code>
+                  </li>
+                  <li>
+                    <strong>Import:</strong> <code>import createApp from "@shopify/app-bridge"</code>
+                  </li>
+                  <li>
+                    <strong>Does NOT create window.shopify</strong> - imported directly
+                  </li>
+                  <li>
+                    <strong>Recommended by Shopify's current documentation</strong>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="alert alert-info">
+                <div className="text-sm">
+                  <strong>Note:</strong> If <code>cdnScriptLoaded</code> shows false but <code>npmPackageAvailable</code> shows true,
+                  your app is correctly using the modern npm package approach. The automated checker may not recognize this pattern.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
