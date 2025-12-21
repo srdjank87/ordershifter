@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import Script from "next/script";
 import type { ReactNode } from "react";
 
 const geistSans = Geist({
@@ -28,15 +27,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" data-theme="light">
       <head>
-        {/* Shopify embedded runtime checks expect latest App Bridge CDN */}
-        {/* Using both direct script tag and Script component for compatibility */}
+        {/* Shopify App Bridge - loaded via dangerouslySetInnerHTML to bypass Next.js sanitization */}
         <script
-          src="https://cdn.shopify.com/shopifycloud/app-bridge/app-bridge-latest.min.js"
-          data-api-key={process.env.NEXT_PUBLIC_SHOPIFY_API_KEY}
-        />
-        <Script
-          src="https://cdn.shopify.com/shopifycloud/app-bridge/app-bridge-latest.min.js"
-          strategy="beforeInteractive"
+          src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
+          dangerouslySetInnerHTML={{ __html: "" }}
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
