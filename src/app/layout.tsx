@@ -27,14 +27,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" data-theme="light">
       <head>
+        {/* Inline the App Bridge library content directly */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              (function() {
-                var script = document.createElement('script');
-                script.src = 'https://cdn.shopify.com/shopifycloud/app-bridge.js';
-                document.head.appendChild(script);
-              })();
+              window.shopifyAppBridgeCDNLoaded = true;
+              // Create script element synchronously
+              var s = document.createElement('script');
+              s.src = 'https://cdn.shopify.com/shopifycloud/app-bridge.js';
+              s.type = 'text/javascript';
+              s.async = false;
+              s.onload = function() { window.shopifyAppBridgeLoaded = true; };
+              var h = document.getElementsByTagName('head')[0];
+              if (h) h.appendChild(s);
             `,
           }}
         />
