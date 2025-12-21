@@ -24,24 +24,21 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const apiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY;
+
   return (
     <html lang="en" data-theme="light">
       <head>
-        {/* Inline the App Bridge library content directly */}
+        {/* Meta tag required by Shopify's automated checker */}
+        {apiKey && (
+          <meta name="shopify-api-key" content={apiKey} />
+        )}
+
+        {/* Script tag required by Shopify's automated checker */}
         <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.shopifyAppBridgeCDNLoaded = true;
-              // Create script element synchronously
-              var s = document.createElement('script');
-              s.src = 'https://cdn.shopify.com/shopifycloud/app-bridge.js';
-              s.type = 'text/javascript';
-              s.async = false;
-              s.onload = function() { window.shopifyAppBridgeLoaded = true; };
-              var h = document.getElementsByTagName('head')[0];
-              if (h) h.appendChild(s);
-            `,
-          }}
+          src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
+          // @ts-expect-error - Next.js types don't include all valid script attributes
+          type="text/javascript"
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
