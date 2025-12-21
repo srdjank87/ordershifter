@@ -35,11 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         )}
 
         {/* Script tag required by Shopify's automated checker */}
-        <script
-          src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
-          // @ts-expect-error - Next.js types don't include all valid script attributes
-          type="text/javascript"
-        />
+        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}

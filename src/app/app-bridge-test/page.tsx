@@ -56,9 +56,13 @@ export default function AppBridgeTestPage() {
       results.scriptTagCount = "0";
     }
 
-    // Check 8: Check for our custom flags
-    results.customCDNLoadedFlag = typeof window !== "undefined" && "shopifyAppBridgeCDNLoaded" in window;
-    results.customLoadedFlag = typeof window !== "undefined" && "shopifyAppBridgeLoaded" in window;
+    // Check 8: Check for shopify-api-key meta tag
+    if (typeof document !== "undefined") {
+      const metaTag = document.querySelector('meta[name="shopify-api-key"]');
+      results.shopifyApiKeyMetaTag = metaTag ? (metaTag.getAttribute("content") || "EMPTY") : "NOT FOUND";
+    } else {
+      results.shopifyApiKeyMetaTag = "SSR - no document";
+    }
 
     setChecks(results);
   }, []);
