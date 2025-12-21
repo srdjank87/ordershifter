@@ -34,8 +34,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <meta name="shopify-api-key" content={apiKey} />
         )}
 
-        {/* Script tag required by Shopify's automated checker */}
-        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" />
+        {/* Inject script tag directly in HTML - required by Shopify's automated checker */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var script = document.createElement('script');
+                script.src = 'https://cdn.shopify.com/shopifycloud/app-bridge.js';
+                script.async = true;
+                document.head.appendChild(script);
+              })();
+            `,
+          }}
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
