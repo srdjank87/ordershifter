@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "OrderShifter App",
@@ -8,10 +7,7 @@ export const metadata: Metadata = {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Script
-        src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
-        strategy="beforeInteractive"
-      />
+      <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" async />
       {children}
     </>
   );
