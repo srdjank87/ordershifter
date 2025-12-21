@@ -27,6 +27,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" data-theme="light">
+      <head>
+        <script async src="https://cdn.shopify.com/shopifycloud/app-bridge.js" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ShopifyAppBridgeLoader />
         {children}
