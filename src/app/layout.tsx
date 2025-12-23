@@ -29,24 +29,30 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" data-theme="light">
       <head>
-        {/* Meta tag required by Shopify's automated checker */}
-        {apiKey && (
-          <meta name="shopify-api-key" content={apiKey} />
-        )}
-
-        {/* Inject script tag directly in HTML - required by Shopify's automated checker */}
+        {/* Shopify App Bridge CDN script - loaded synchronously as first script */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 var script = document.createElement('script');
                 script.src = 'https://cdn.shopify.com/shopifycloud/app-bridge.js';
-                script.async = true;
-                document.head.appendChild(script);
+                // Don't set script.async - leave it undefined for synchronous loading
+
+                var firstScript = document.querySelector('script');
+                if (firstScript && firstScript.parentNode) {
+                  firstScript.parentNode.insertBefore(script, firstScript);
+                } else {
+                  document.head.appendChild(script);
+                }
               })();
             `,
           }}
         />
+
+        {/* Meta tag required by Shopify's automated checker */}
+        {apiKey && (
+          <meta name="shopify-api-key" content={apiKey} />
+        )}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
