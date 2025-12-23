@@ -5,10 +5,6 @@ export const metadata: Metadata = {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" async />
-      {children}
-    </>
-  );
+  // Script is loaded in root layout - no need to duplicate here
+  return <>{children}</>;
 }
