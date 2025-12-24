@@ -47,6 +47,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               })();
             `,
           }}
+          suppressHydrationWarning
         />
 
         {/* Meta tag required by Shopify's automated checker */}
