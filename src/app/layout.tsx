@@ -36,7 +36,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               (function() {
                 var script = document.createElement('script');
                 script.src = 'https://cdn.shopify.com/shopifycloud/app-bridge.js';
-                // Don't set script.async - leave it undefined for synchronous loading
+                script.async = false; // Explicitly set to false for synchronous loading
+                script.defer = false; // Explicitly disable defer
+                script.type = 'text/javascript'; // Ensure it's regular JS, not module
 
                 var firstScript = document.querySelector('script');
                 if (firstScript && firstScript.parentNode) {
