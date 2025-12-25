@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description:
     "OrderShifter helps 3PLs automate Shopify order flows, reduce exceptions, and retain merchants.",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/icon.svg",
   },
 };
 
